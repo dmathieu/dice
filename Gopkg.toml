@@ -37,6 +37,10 @@
   name = "github.com/spf13/viper"
   version = "1.2.0"
 
+[[constraint]]
+  name = "k8s.io/client-go"
+  revision = "33124a8148e116651093c18f5f0beedbfe39b825"
+
 [prune]
   go-tests = true
   unused-packages = true
