@@ -17,6 +17,10 @@ type Node struct {
 	*corev1.Node
 }
 
+func (n *Node) IsFlagged() bool {
+	return n.Labels[flagName] == flagValue
+}
+
 func NodeFlagged() func(*metav1.ListOptions) {
 	return func(o *metav1.ListOptions) {
 		o.LabelSelector = fmt.Sprintf("%s=%s", flagName, flagValue)
@@ -46,6 +50,14 @@ func GetNodes(client kubernetes.Interface, opts ...func(*metav1.ListOptions)) ([
 	}
 
 	return nodes, nil
+}
+
+func FindNode(client kubernetes.Interface, name string) (*Node, error) {
+	node, err := client.CoreV1().Nodes().Get(name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return &Node{node}, err
 }
 
 func FlagNode(client kubernetes.Interface, node *Node) error {

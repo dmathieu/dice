@@ -1,6 +1,7 @@
 package processors
 
 import (
+	"context"
 	"errors"
 
 	"github.com/dmathieu/dice/kubernetes"
@@ -11,7 +12,7 @@ type FlagNodesProcessor struct {
 	kubeClient kube.Interface
 }
 
-func (p *FlagNodesProcessor) Process() error {
+func (p *FlagNodesProcessor) Process(context.Context) error {
 	nodes, err := kubernetes.GetNodes(p.kubeClient, kubernetes.NodeFlagged())
 	if err != nil {
 		return err
