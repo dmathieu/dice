@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:bf2d9123234770e182d64a5c8dbe4f2f4176d3bdd9a02978a7f8f2d872fe371d"
+  digest = "1:871ab5a09054f329aef57a5f197327e406bb8e1f0c4f080ceefc574d74742207"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -33,6 +33,7 @@
     "private/protocol/rest",
     "private/protocol/xml/xmlutil",
     "service/ec2",
+    "service/ec2/ec2iface",
     "service/sts",
   ]
   pruneopts = "UT"
@@ -617,6 +618,7 @@
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/ec2",
+    "github.com/aws/aws-sdk-go/service/ec2/ec2iface",
     "github.com/mitchellh/go-homedir",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",

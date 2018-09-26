@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/dmathieu/dice/cloudprovider"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -13,7 +14,7 @@ import (
 const ProviderName = "aws"
 
 type AWSCloudProvider struct {
-	svc *ec2.EC2
+	svc ec2iface.EC2API
 }
 
 func NewAWSCloudProvider() cloudprovider.CloudProvider {
@@ -63,7 +64,7 @@ func (t *AWSCloudProvider) findInstanceFromNode(node *corev1.Node) (*ec2.Instanc
 		return nil, fmt.Errorf("found %d reservations matching node %s", len(result.Reservations), node.Name)
 	}
 	if len(result.Reservations[0].Instances) > 1 {
-		return nil, fmt.Errorf("found %d reservations matching node %s", len(result.Reservations[0].Instances), node.Name)
+		return nil, fmt.Errorf("found %d instances matching node %s", len(result.Reservations[0].Instances), node.Name)
 	}
 
 	return result.Reservations[0].Instances[0], nil
