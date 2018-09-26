@@ -25,7 +25,7 @@ func TestFlagNodes(t *testing.T) {
 
 	nodes, err := kubernetes.GetNodes(client, kubernetes.NodeFlagged())
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(nodes.Items))
+	assert.Equal(t, 1, len(nodes))
 }
 
 func TestFlagNodesAlreadyFlagged(t *testing.T) {
@@ -37,7 +37,7 @@ func TestFlagNodesAlreadyFlagged(t *testing.T) {
 	client := fake.NewSimpleClientset(node)
 	processor := &FlagNodesProcessor{kubeClient: client}
 
-	err := kubernetes.FlagNode(client, node)
+	err := kubernetes.FlagNode(client, &kubernetes.Node{Node: node})
 	assert.Nil(t, err)
 
 	err = processor.Process()

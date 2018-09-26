@@ -4,9 +4,8 @@ import (
 	"testing"
 
 	"github.com/dmathieu/dice/cloudprovider"
+	"github.com/dmathieu/dice/kubernetes"
 	"github.com/stretchr/testify/assert"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestMatchInterfaces(t *testing.T) {
@@ -19,12 +18,7 @@ func TestName(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	node := &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "node",
-		},
-	}
-
+	node := &kubernetes.Node{}
 	p := NewTestCloudProvider()
 	assert.Nil(t, p.Delete(node))
 }

@@ -26,21 +26,21 @@ func TestGetNodes(t *testing.T) {
 	t.Run("get all nodes", func(t *testing.T) {
 		nodes, err := GetNodes(client)
 		assert.Nil(t, err)
-		assert.Equal(t, 2, len(nodes.Items))
+		assert.Equal(t, 2, len(nodes))
 	})
 
 	t.Run("get all flagged nodes", func(t *testing.T) {
 		nodes, err := GetNodes(client, NodeFlagged())
 		assert.Nil(t, err)
-		assert.Equal(t, 1, len(nodes.Items))
-		assert.Equal(t, "flagged-node", nodes.Items[0].ObjectMeta.Name)
+		assert.Equal(t, 1, len(nodes))
+		assert.Equal(t, "flagged-node", nodes[0].Name)
 	})
 
 	t.Run("get all non-flagged nodes", func(t *testing.T) {
 		nodes, err := GetNodes(client, NodeNotFlagged())
 		assert.Nil(t, err)
-		assert.Equal(t, 1, len(nodes.Items))
-		assert.Equal(t, "not-flagged-node", nodes.Items[0].ObjectMeta.Name)
+		assert.Equal(t, 1, len(nodes))
+		assert.Equal(t, "not-flagged-node", nodes[0].Name)
 	})
 }
 
@@ -54,13 +54,13 @@ func TestFlagNode(t *testing.T) {
 
 	nodes, err := GetNodes(client, NodeFlagged())
 	assert.Nil(t, err)
-	assert.Equal(t, 0, len(nodes.Items))
+	assert.Equal(t, 0, len(nodes))
 
-	err = FlagNode(client, node)
+	err = FlagNode(client, &Node{node})
 	assert.Nil(t, err)
 
 	nodes, err = GetNodes(client, NodeFlagged())
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(nodes.Items))
-	assert.Equal(t, "node", nodes.Items[0].ObjectMeta.Name)
+	assert.Equal(t, 1, len(nodes))
+	assert.Equal(t, "node", nodes[0].Name)
 }

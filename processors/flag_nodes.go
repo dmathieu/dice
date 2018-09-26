@@ -16,7 +16,7 @@ func (p *FlagNodesProcessor) Process() error {
 	if err != nil {
 		return err
 	}
-	if len(nodes.Items) > 0 {
+	if len(nodes) > 0 {
 		return errors.New("found already flagged nodes. Looks like a roll process is already running")
 	}
 
@@ -25,8 +25,8 @@ func (p *FlagNodesProcessor) Process() error {
 		return err
 	}
 
-	for _, n := range nodes.Items {
-		err = kubernetes.FlagNode(p.kubeClient, &n)
+	for _, n := range nodes {
+		err = kubernetes.FlagNode(p.kubeClient, n)
 		if err != nil {
 			return err
 		}

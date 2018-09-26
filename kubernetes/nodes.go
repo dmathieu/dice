@@ -13,6 +13,10 @@ const (
 	flagValue = "roll"
 )
 
+type Node struct {
+	*corev1.Node
+}
+
 func NodeFlagged() func(*metav1.ListOptions) {
 	return func(o *metav1.ListOptions) {
 		o.LabelSelector = fmt.Sprintf("%s=%s", flagName, flagValue)
@@ -25,21 +29,31 @@ func NodeNotFlagged() func(*metav1.ListOptions) {
 	}
 }
 
-func GetNodes(client kubernetes.Interface, opts ...func(*metav1.ListOptions)) (*corev1.NodeList, error) {
+func GetNodes(client kubernetes.Interface, opts ...func(*metav1.ListOptions)) ([]*Node, error) {
 	options := &metav1.ListOptions{}
 	for _, opt := range opts {
 		opt(options)
 	}
 
-	return client.CoreV1().Nodes().List(*options)
-}
-
-func FlagNode(client kubernetes.Interface, node *corev1.Node) error {
-	if node.ObjectMeta.Labels == nil {
-		node.ObjectMeta.Labels = map[string]string{}
+	kn, err := client.CoreV1().Nodes().List(*options)
+	if err != nil {
+		return nil, err
 	}
 
-	node.ObjectMeta.Labels[flagName] = flagValue
-	_, err := client.CoreV1().Nodes().Update(node)
+	var nodes []*Node
+	for _, n := range kn.Items {
+		nodes = append(nodes, &Node{&n})
+	}
+
+	return nodes, nil
+}
+
+func FlagNode(client kubernetes.Interface, node *Node) error {
+	if node.Labels == nil {
+		node.Labels = map[string]string{}
+	}
+
+	node.Labels[flagName] = flagValue
+	_, err := client.CoreV1().Nodes().Update(node.Node)
 	return err
 }

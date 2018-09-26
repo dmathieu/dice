@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/ec2/ec2iface"
 	"github.com/dmathieu/dice/cloudprovider"
-	corev1 "k8s.io/api/core/v1"
+	"github.com/dmathieu/dice/kubernetes"
 )
 
 const ProviderName = "aws"
@@ -26,7 +26,7 @@ func (t *AWSCloudProvider) Name() string {
 	return ProviderName
 }
 
-func (t *AWSCloudProvider) Delete(node *corev1.Node) error {
+func (t *AWSCloudProvider) Delete(node *kubernetes.Node) error {
 	instance, err := t.findInstanceFromNode(node)
 	if err != nil {
 		return err
@@ -39,7 +39,7 @@ func (t *AWSCloudProvider) Delete(node *corev1.Node) error {
 	return err
 }
 
-func (t *AWSCloudProvider) findInstanceFromNode(node *corev1.Node) (*ec2.Instance, error) {
+func (t *AWSCloudProvider) findInstanceFromNode(node *kubernetes.Node) (*ec2.Instance, error) {
 	var addresses []*string
 	for _, a := range node.Status.Addresses {
 		addresses = append(addresses, &a.Address)

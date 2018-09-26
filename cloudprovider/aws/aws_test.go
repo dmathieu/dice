@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/dmathieu/dice/cloudprovider"
+	"github.com/dmathieu/dice/kubernetes"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,9 +22,11 @@ func TestName(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	node := &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "my-node",
+	node := &kubernetes.Node{
+		Node: &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "my-node",
+			},
 		},
 	}
 	client := &mockEC2Client{
@@ -38,9 +41,11 @@ func TestDelete(t *testing.T) {
 }
 
 func TestInstanceFromNode(t *testing.T) {
-	node := &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "my-node",
+	node := &kubernetes.Node{
+		Node: &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "my-node",
+			},
 		},
 	}
 

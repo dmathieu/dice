@@ -3,7 +3,7 @@ package test
 import (
 	"sync"
 
-	corev1 "k8s.io/api/core/v1"
+	"github.com/dmathieu/dice/kubernetes"
 )
 
 const ProviderName = "test"
@@ -21,7 +21,7 @@ func (t *TestCloudProvider) Name() string {
 	return ProviderName
 }
 
-func (t *TestCloudProvider) Delete(*corev1.Node) error {
+func (t *TestCloudProvider) Delete(*kubernetes.Node) error {
 	return nil
 }
 
