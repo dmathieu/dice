@@ -15,3 +15,7 @@ func (m *mockEC2Client) DescribeInstances(input *ec2.DescribeInstancesInput) (*e
 		Reservations: m.reservations,
 	}, nil
 }
+
+func (m *mockEC2Client) TerminateInstances(input *ec2.TerminateInstancesInput) (*ec2.TerminateInstancesOutput, error) {
+	return &ec2.TerminateInstancesOutput{}, nil
+}

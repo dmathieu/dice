@@ -20,6 +20,23 @@ func TestName(t *testing.T) {
 	assert.Equal(t, "aws", p.Name())
 }
 
+func TestDelete(t *testing.T) {
+	node := &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "my-node",
+		},
+	}
+	client := &mockEC2Client{
+		reservations: []*ec2.Reservation{
+			&ec2.Reservation{
+				Instances: []*ec2.Instance{&ec2.Instance{}},
+			},
+		},
+	}
+	p := &AWSCloudProvider{client}
+	assert.Nil(t, p.Delete(node))
+}
+
 func TestInstanceFromNode(t *testing.T) {
 	node := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
