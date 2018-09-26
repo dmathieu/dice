@@ -5,25 +5,28 @@ import (
 
 	"github.com/dmathieu/dice/cloudprovider"
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestMatchInterfaces(t *testing.T) {
 	assert.Implements(t, (*cloudprovider.CloudProvider)(nil), &TestCloudProvider{})
-	assert.Implements(t, (*cloudprovider.NodeGroup)(nil), &TestNodeGroup{})
-}
-
-func TestNodeGroups(t *testing.T) {
-	p := NewTestCloudProvider()
-	assert.Equal(t, 0, len(p.NodeGroups()))
-
-	p.InsertNodeGroup(&TestNodeGroup{id: "my-node"})
-	assert.Equal(t, 1, len(p.NodeGroups()))
-	assert.Equal(t, "my-node", p.NodeGroups()[0].Id())
 }
 
 func TestName(t *testing.T) {
 	p := NewTestCloudProvider()
 	assert.Equal(t, "test", p.Name())
+}
+
+func TestDelete(t *testing.T) {
+	node := &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "node",
+		},
+	}
+
+	p := NewTestCloudProvider()
+	assert.Nil(t, p.Delete(node))
 }
 
 func TestRefresh(t *testing.T) {

@@ -1,19 +1,17 @@
 package cloudprovider
 
+import (
+	corev1 "k8s.io/api/core/v1"
+)
+
 type CloudProvider interface {
 	// Name returns name of the cloud provider.
 	Name() string
 
-	// NodeGroups returns all node groups configured for this cloud provider.
-	NodeGroups() []NodeGroup
+	// Delete finds and deletes the specified node
+	Delete(*corev1.Node) error
 
 	// Refresh is called before every main loop and can be used to dynamically update cloud provider state.
 	// In particular the list of node groups returned by NodeGroups can change as a result of CloudProvider.Refresh().
 	Refresh() error
-}
-
-// NodeGroup contains configuration info and functions to control a set
-// of nodes that have the same capacity and set of labels.
-type NodeGroup interface {
-	Id() string
 }
