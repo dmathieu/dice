@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dmathieu/dice/cloudprovider"
+	"github.com/dmathieu/dice/cloudprovider/aws"
 	"github.com/dmathieu/dice/cloudprovider/test"
 )
 
@@ -11,6 +12,8 @@ import (
 // We need this in it's own package to avoid circular imports
 func NewCloudProvider(name string) (cloudprovider.CloudProvider, error) {
 	switch name {
+	case aws.ProviderName:
+		return aws.NewAWSCloudProvider(), nil
 	case test.ProviderName:
 		return test.NewTestCloudProvider(), nil
 	default:
