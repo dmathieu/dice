@@ -15,4 +15,5 @@ type CloudProvider interface {
 // NodeGroup contains configuration info and functions to control a set
 // of nodes that have the same capacity and set of labels.
 type NodeGroup interface {
+	Id() string
 }

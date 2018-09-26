@@ -12,7 +12,7 @@ import (
 func NewCloudProvider(name string) (cloudprovider.CloudProvider, error) {
 	switch name {
 	case test.ProviderName:
-		return &test.TestCloudProvider{}, nil
+		return test.NewTestCloudProvider(), nil
 	default:
 		return nil, fmt.Errorf("Unknown cloud provider %q", name)
 	}
