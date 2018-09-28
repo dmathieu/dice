@@ -1,6 +1,7 @@
 package processors
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -20,7 +21,7 @@ func TestFlagNodes(t *testing.T) {
 	client := fake.NewSimpleClientset(node)
 	processor := &FlagNodesProcessor{kubeClient: client}
 
-	err := processor.Process()
+	err := processor.Process(context.Background())
 	assert.Nil(t, err)
 
 	nodes, err := kubernetes.GetNodes(client, kubernetes.NodeFlagged())
@@ -40,6 +41,6 @@ func TestFlagNodesAlreadyFlagged(t *testing.T) {
 	err := kubernetes.FlagNode(client, &kubernetes.Node{Node: node})
 	assert.Nil(t, err)
 
-	err = processor.Process()
+	err = processor.Process(context.Background())
 	assert.Equal(t, errors.New("found already flagged nodes. Looks like a roll process is already running"), err)
 }

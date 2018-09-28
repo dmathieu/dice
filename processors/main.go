@@ -1,5 +1,7 @@
 package processors
 
+import "context"
+
 type Processor interface {
-	Process() error
+	Process(context.Context) error
 }

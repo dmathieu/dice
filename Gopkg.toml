@@ -41,6 +41,14 @@
   name = "k8s.io/client-go"
   revision = "33124a8148e116651093c18f5f0beedbfe39b825"
 
+[[constraint]]
+  name = "k8s.io/kubernetes"
+  revision = "807eb6b24b953ff3f59c8049eff7e0edbc279e18"
+
+[[override]]
+  name = "github.com/docker/distribution"
+  revision = "d37f8164276c54f91c4ca7f64e3543f3cc6ecd29"
+
 [prune]
   go-tests = true
   unused-packages = true

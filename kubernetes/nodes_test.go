@@ -5,9 +5,21 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 )
+
+func TestNodeIsFlagged(t *testing.T) {
+	node := &Node{&corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: map[string]string{},
+		},
+	}}
+	assert.False(t, node.IsFlagged())
+	node.Labels[flagName] = flagValue
+	assert.True(t, node.IsFlagged())
+}
 
 func TestGetNodes(t *testing.T) {
 	flaggedNode := &corev1.Node{
@@ -41,6 +53,27 @@ func TestGetNodes(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, 1, len(nodes))
 		assert.Equal(t, "not-flagged-node", nodes[0].Name)
+	})
+}
+
+func TestFindNode(t *testing.T) {
+	node := &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "my-node",
+		},
+	}
+	client := fake.NewSimpleClientset(node)
+
+	t.Run("when the node is found", func(t *testing.T) {
+		n, err := FindNode(client, "my-node")
+		assert.Nil(t, err)
+		assert.Equal(t, &Node{node}, n)
+	})
+
+	t.Run("when the node is not found", func(t *testing.T) {
+		n, err := FindNode(client, "unknown-node")
+		assert.IsType(t, &errors.StatusError{}, err)
+		assert.Nil(t, n)
 	})
 }
 
