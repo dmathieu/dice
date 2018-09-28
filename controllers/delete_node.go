@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"context"
-	"errors"
 	"fmt"
 
 	"github.com/dmathieu/dice/cloudprovider"
@@ -40,25 +38,12 @@ func NewDeleteNodeController(kClient kube.Interface, cClient cloudprovider.Cloud
 	return controller
 }
 
-func (c *DeleteNodeController) Run(ctx context.Context) error {
+func (c *DeleteNodeController) Run(doneCh chan struct{}) {
 	defer utilruntime.HandleCrash()
-
-	doneCh := make(chan struct{})
 	if !controller.WaitForCacheSync("dice", doneCh, c.podListerSynced) {
-		return errors.New("couldn't wait for cache sync")
+		return
 	}
-
-	ctx, cancel := context.WithCancel(ctx)
-	for {
-		select {
-		case <-doneCh:
-			cancel()
-			return nil
-		case <-ctx.Done():
-			cancel()
-			return nil
-		}
-	}
+	<-doneCh
 }
 
 func (c *DeleteNodeController) addPod(obj interface{}) {
