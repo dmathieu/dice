@@ -45,7 +45,7 @@ var runCmd = &cobra.Command{
 		evict := controllers.NewEvictNodeController(k8Client, i.Core().V1().Nodes())
 		go evict.Run(doneCh)
 
-		delete := controllers.NewDeleteNodeController(k8Client, cloudClient, i.Core().V1().Pods())
+		delete := controllers.NewDeleteNodeController(k8Client, cloudClient, i.Core().V1().Pods(), i.Core().V1().Nodes())
 		go delete.Run(doneCh)
 
 		i.Start(doneCh)

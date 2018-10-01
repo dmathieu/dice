@@ -18,15 +18,18 @@ type DeleteNodeController struct {
 	kubeClient  kube.Interface
 	cloudClient cloudprovider.CloudProvider
 
-	podInformer     coreinformers.PodInformer
-	podListerSynced cache.InformerSynced
+	podInformer      coreinformers.PodInformer
+	podListerSynced  cache.InformerSynced
+	nodeInformer     coreinformers.NodeInformer
+	nodeListerSynced cache.InformerSynced
 }
 
-func NewDeleteNodeController(kClient kube.Interface, cClient cloudprovider.CloudProvider, podInformer coreinformers.PodInformer) *DeleteNodeController {
+func NewDeleteNodeController(kClient kube.Interface, cClient cloudprovider.CloudProvider, podInformer coreinformers.PodInformer, nodeInformer coreinformers.NodeInformer) *DeleteNodeController {
 	controller := &DeleteNodeController{
-		kubeClient:  kClient,
-		cloudClient: cClient,
-		podInformer: podInformer,
+		kubeClient:   kClient,
+		cloudClient:  cClient,
+		podInformer:  podInformer,
+		nodeInformer: nodeInformer,
 	}
 
 	controller.podInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
@@ -35,6 +38,13 @@ func NewDeleteNodeController(kClient kube.Interface, cClient cloudprovider.Cloud
 		DeleteFunc: controller.deletePod,
 	})
 	controller.podListerSynced = controller.podInformer.Informer().HasSynced
+
+	controller.nodeInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    controller.addNode,
+		UpdateFunc: controller.updateNode,
+		DeleteFunc: controller.deleteNode,
+	})
+	controller.nodeListerSynced = controller.nodeInformer.Informer().HasSynced
 
 	return controller
 }
@@ -69,6 +79,24 @@ func (c *DeleteNodeController) deletePod(obj interface{}) {
 	c.handlePodChange(pod)
 }
 
+func (c *DeleteNodeController) addNode(obj interface{}) {
+	// We have nothing to handle on add
+}
+
+func (c *DeleteNodeController) updateNode(old, cur interface{}) {
+	node, ok := cur.(*corev1.Node)
+	if !ok {
+		utilruntime.HandleError(fmt.Errorf("Couldn't get node %#v", cur))
+		return
+	}
+
+	c.handleNodeDeletion(&kubernetes.Node{Node: node})
+}
+
+func (c *DeleteNodeController) deleteNode(obj interface{}) {
+	// We have nothing to handle on delete
+}
+
 func (c *DeleteNodeController) handlePodChange(pod *corev1.Pod) {
 	switch pod.Status.Phase {
 	case corev1.PodSucceeded, corev1.PodFailed:
@@ -77,23 +105,32 @@ func (c *DeleteNodeController) handlePodChange(pod *corev1.Pod) {
 		return
 	}
 
-	pods, err := kubernetes.GetPods(c.kubeClient, kubernetes.PodNotTerminated(), kubernetes.PodOnNode(pod.Spec.NodeName))
+	node, err := kubernetes.FindNode(c.kubeClient, pod.Spec.NodeName)
 	if err != nil {
 		utilruntime.HandleError(err)
 	}
+	err = c.handleNodeDeletion(node)
+	if err != nil {
+		utilruntime.HandleError(err)
+	}
+}
+
+func (c *DeleteNodeController) handleNodeDeletion(node *kubernetes.Node) error {
+	if !node.Spec.Unschedulable || !node.IsFlagged() {
+		return nil
+	}
+
+	pods, err := kubernetes.GetPods(c.kubeClient, kubernetes.PodNotTerminated(), kubernetes.PodOnNode(node.Name))
+	if err != nil {
+		return err
+	}
 
 	if len(pods) == 0 {
-		node, err := kubernetes.FindNode(c.kubeClient, pod.Spec.NodeName)
+		glog.Infof("Deleting node %s", node.Name)
+		err := c.cloudClient.Delete(node)
 		if err != nil {
-			utilruntime.HandleError(err)
-		}
-
-		if node.Spec.Unschedulable && node.IsFlagged() {
-			glog.Infof("Deleting node %s", node.Name)
-			err := c.cloudClient.Delete(node)
-			if err != nil {
-				utilruntime.HandleError(err)
-			}
+			return err
 		}
 	}
+	return nil
 }
