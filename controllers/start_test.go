@@ -1,7 +1,6 @@
-package processors
+package controllers
 
 import (
-	"context"
 	"errors"
 	"testing"
 
@@ -12,16 +11,16 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-func TestFlagNodes(t *testing.T) {
+func TestStartControllerFlagNodes(t *testing.T) {
 	node := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "node",
 		},
 	}
 	client := fake.NewSimpleClientset(node)
-	processor := &FlagNodesProcessor{kubeClient: client}
+	controller := &StartController{kubeClient: client}
 
-	err := processor.Process(context.Background())
+	err := controller.Run()
 	assert.Nil(t, err)
 
 	nodes, err := kubernetes.GetNodes(client, kubernetes.NodeFlagged())
@@ -29,18 +28,18 @@ func TestFlagNodes(t *testing.T) {
 	assert.Equal(t, 1, len(nodes))
 }
 
-func TestFlagNodesAlreadyFlagged(t *testing.T) {
+func TestStartControllerFlagNodesAlreadyFlagged(t *testing.T) {
 	node := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "node",
 		},
 	}
 	client := fake.NewSimpleClientset(node)
-	processor := &FlagNodesProcessor{kubeClient: client}
+	controller := &StartController{kubeClient: client}
 
 	err := kubernetes.FlagNode(client, &kubernetes.Node{Node: node})
 	assert.Nil(t, err)
 
-	err = processor.Process(context.Background())
+	err = controller.Run()
 	assert.Equal(t, errors.New("found already flagged nodes. Looks like a roll process is already running"), err)
 }

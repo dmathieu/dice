@@ -1,18 +1,26 @@
-package processors
+package controllers
 
 import (
-	"context"
 	"errors"
 
 	"github.com/dmathieu/dice/kubernetes"
 	kube "k8s.io/client-go/kubernetes"
 )
 
-type FlagNodesProcessor struct {
+type StartController struct {
 	kubeClient kube.Interface
 }
 
-func (p *FlagNodesProcessor) Process(context.Context) error {
+func (p *StartController) Run() error {
+	err := p.flagNodes()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *StartController) flagNodes() error {
 	nodes, err := kubernetes.GetNodes(p.kubeClient, kubernetes.NodeFlagged())
 	if err != nil {
 		return err
