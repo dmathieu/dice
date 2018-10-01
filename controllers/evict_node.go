@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/dmathieu/dice/cloudprovider"
 	"github.com/dmathieu/dice/kubernetes"
@@ -22,6 +24,7 @@ type EvictNodeController struct {
 }
 
 func NewEvictNodeController(kClient kube.Interface, nodeInformer coreinformers.NodeInformer) *EvictNodeController {
+	rand.Seed(time.Now().Unix())
 	controller := &EvictNodeController{
 		kubeClient:   kClient,
 		nodeInformer: nodeInformer,
@@ -78,5 +81,22 @@ func (c *EvictNodeController) deleteNode(obj interface{}) {
 	// We have nothing to handle on delete
 }
 
-func (c *EvictNodeController) handleNodeChange(node *corev1.Node) {
+func (c *EvictNodeController) handleNodeChange(n *corev1.Node) {
+	node := &kubernetes.Node{Node: n}
+
+	if !node.IsReady() || node.IsFlagged() {
+		return
+	}
+
+	nodes, err := kubernetes.GetNodes(c.kubeClient, kubernetes.NodeFlagged())
+	if err != nil {
+		utilruntime.HandleError(err)
+		return
+	}
+	eNode := nodes[rand.Intn(len(nodes))]
+	err = kubernetes.EvictNode(c.kubeClient, eNode)
+	if err != nil {
+		utilruntime.HandleError(err)
+		return
+	}
 }

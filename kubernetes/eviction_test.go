@@ -10,12 +10,12 @@ import (
 )
 
 func TestEvictNode(t *testing.T) {
-	node := &corev1.Node{
+	node := &Node{&corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "node",
 		},
-	}
-	client := fake.NewSimpleClientset(node)
+	}}
+	client := fake.NewSimpleClientset(node.Node)
 
 	err := EvictNode(client, node)
 	assert.Nil(t, err)
@@ -23,11 +23,11 @@ func TestEvictNode(t *testing.T) {
 }
 
 func TestEvictNodeWithPods(t *testing.T) {
-	node := &corev1.Node{
+	node := &Node{&corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "node",
 		},
-	}
+	}}
 	podOnNode := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "pod-on-node",
@@ -46,12 +46,12 @@ func TestEvictNodeWithPods(t *testing.T) {
 			NodeName: "other-node",
 		},
 	}
-	client := fake.NewSimpleClientset(node, podOnNode, podOnOtherNode)
+	client := fake.NewSimpleClientset(node.Node, podOnNode, podOnOtherNode)
 
 	err := EvictNode(client, node)
 	assert.Nil(t, err)
 
-	/*pods, err := client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
+	pods, err := client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
 	assert.Nil(t, err)
-	assert.Equal(t, 2, len(pods.Items))*/
+	assert.Equal(t, 2, len(pods.Items))
 }
