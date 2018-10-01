@@ -7,5 +7,13 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Download cc-test-reporter
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
+      - run:
           name: Run tests
           command: make ci
+      - run:
+          name: Upload coverage to CircleCI
+          command: ./cc-test-reporter after-build --exit-code $?
