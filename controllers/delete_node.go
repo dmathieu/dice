@@ -100,7 +100,10 @@ func (c *DeleteNodeController) updateNode(old, cur interface{}) {
 		return
 	}
 
-	c.handleNodeDeletion(&kubernetes.Node{Node: node})
+	err := c.handleNodeDeletion(&kubernetes.Node{Node: node})
+	if err != nil {
+		utilruntime.HandleError(err)
+	}
 }
 
 func (c *DeleteNodeController) deleteNode(obj interface{}) {
