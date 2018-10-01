@@ -39,7 +39,7 @@
 
 [[constraint]]
   name = "k8s.io/client-go"
-  revision = "33124a8148e116651093c18f5f0beedbfe39b825"
+  revision = "78bf9020c4adf8a8be946e9f4724575fe30cf5a0"
 
 [[constraint]]
   name = "k8s.io/kubernetes"
