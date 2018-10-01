@@ -93,6 +93,10 @@ func (c *EvictNodeController) handleNodeChange(n *corev1.Node) {
 		utilruntime.HandleError(err)
 		return
 	}
+	if len(nodes) == 0 {
+		return
+	}
+
 	eNode := nodes[rand.Intn(len(nodes))]
 	err = kubernetes.EvictNode(c.kubeClient, eNode)
 	if err != nil {
