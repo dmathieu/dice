@@ -39,11 +39,6 @@ var runCmd = &cobra.Command{
 		}
 
 		glog.Infof("Starting controllers")
-		start := controllers.NewStartController(k8Client)
-		err = start.Run(concurrency)
-		if err != nil {
-			log.Fatal(err)
-		}
 
 		doneCh := make(chan struct{})
 		i := informers.NewSharedInformerFactory(k8Client, time.Second*30)
@@ -52,6 +47,14 @@ var runCmd = &cobra.Command{
 
 		delete := controllers.NewDeleteNodeController(k8Client, cloudClient, i.Core().V1().Pods())
 		go delete.Run(doneCh)
+
+		i.Start(doneCh)
+
+		start := controllers.NewStartController(k8Client)
+		err = start.Run(concurrency)
+		if err != nil {
+			log.Fatal(err)
+		}
 		glog.Infof("Started all controllers")
 
 		for {

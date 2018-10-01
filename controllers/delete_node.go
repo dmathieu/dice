@@ -41,7 +41,7 @@ func NewDeleteNodeController(kClient kube.Interface, cClient cloudprovider.Cloud
 
 func (c *DeleteNodeController) Run(doneCh chan struct{}) {
 	defer utilruntime.HandleCrash()
-	if !controller.WaitForCacheSync("dice", doneCh, c.podListerSynced) {
+	if !controller.WaitForCacheSync("delete node", doneCh, c.podListerSynced) {
 		return
 	}
 	<-doneCh

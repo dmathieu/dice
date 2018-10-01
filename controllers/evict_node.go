@@ -42,7 +42,7 @@ func NewEvictNodeController(kClient kube.Interface, nodeInformer coreinformers.N
 
 func (c *EvictNodeController) Run(doneCh chan struct{}) {
 	defer utilruntime.HandleCrash()
-	if !controller.WaitForCacheSync("dice", doneCh, c.nodeListerSynced) {
+	if !controller.WaitForCacheSync("evict node", doneCh, c.nodeListerSynced) {
 		return
 	}
 	<-doneCh
