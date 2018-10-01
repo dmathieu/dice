@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"math/rand"
 
+	"github.com/golang/glog"
 	corev1 "k8s.io/api/core/v1"
 	policy "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,6 +17,7 @@ type nodeEvicter struct {
 }
 
 func (n *nodeEvicter) Process() error {
+	glog.Infof("Evicting node %s", n.node.Name)
 	err := n.markNodeUnschedulable()
 	if err != nil {
 		return err

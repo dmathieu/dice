@@ -5,6 +5,7 @@ import (
 
 	"github.com/dmathieu/dice/cloudprovider"
 	"github.com/dmathieu/dice/kubernetes"
+	"github.com/golang/glog"
 	corev1 "k8s.io/api/core/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	coreinformers "k8s.io/client-go/informers/core/v1"
@@ -88,6 +89,7 @@ func (c *DeleteNodeController) handlePodChange(pod *corev1.Pod) {
 		}
 
 		if node.Spec.Unschedulable && node.IsFlagged() {
+			glog.Infof("Deleting node %s", node.Name)
 			err := c.cloudClient.Delete(node)
 			if err != nil {
 				utilruntime.HandleError(err)
