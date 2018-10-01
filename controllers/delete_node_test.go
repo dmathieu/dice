@@ -232,48 +232,34 @@ func TestDeleteNodeControllerUpdateNode(t *testing.T) {
 			Labels: map[string]string{},
 		},
 	}
-	pod_on_node := &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "pod_on_node",
-		},
-		Spec: corev1.PodSpec{
-			NodeName: node_with_pods.Name,
-		},
-	}
+
+	kClient := fake.NewSimpleClientset()
+	cClient := cloudtest.NewTestCloudProvider()
+	controller := newDeleteNodeController(kClient, cClient)
 
 	t.Run("when still has running pods", func(t *testing.T) {
-		kClient := fake.NewSimpleClientset(node_with_pods, pod_on_node)
-		cClient := cloudtest.NewTestCloudProvider()
-		controller := newDeleteNodeController(kClient, cClient)
 
 		controller.updateNode(node_with_pods, node_with_pods)
 		assert.Equal(t, 0, len(cClient.DeletedNodes))
 	})
 
 	t.Run("when node has no other pods, is unschedulable but is not flagged", func(t *testing.T) {
-		kClient := fake.NewSimpleClientset(node)
-		cClient := cloudtest.NewTestCloudProvider()
-		controller := newDeleteNodeController(kClient, cClient)
-
 		controller.updateNode(node, node)
 		assert.Equal(t, 0, len(cClient.DeletedNodes))
 	})
 
 	t.Run("when node has no other pods and is schedulable", func(t *testing.T) {
-		kClient := fake.NewSimpleClientset(schedulable_node)
-		cClient := cloudtest.NewTestCloudProvider()
-		controller := newDeleteNodeController(kClient, cClient)
+		controller.updateNode(schedulable_node, schedulable_node)
+		assert.Equal(t, 0, len(cClient.DeletedNodes))
+	})
 
+	t.Run("when node was already unschedulable before", func(t *testing.T) {
 		controller.updateNode(schedulable_node, schedulable_node)
 		assert.Equal(t, 0, len(cClient.DeletedNodes))
 	})
 
 	t.Run("when node has no other pods, is unschedulable and is flagged", func(t *testing.T) {
-		kClient := fake.NewSimpleClientset(flagged_node)
-		cClient := cloudtest.NewTestCloudProvider()
-		controller := newDeleteNodeController(kClient, cClient)
-
-		controller.updateNode(flagged_node, flagged_node)
+		controller.updateNode(schedulable_node, flagged_node)
 		assert.Equal(t, 1, len(cClient.DeletedNodes))
 		assert.Equal(t, flagged_node.Name, cClient.DeletedNodes[0].Name)
 	})
