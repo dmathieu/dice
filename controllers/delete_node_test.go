@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -16,10 +15,6 @@ import (
 	"k8s.io/kubernetes/pkg/controller"
 )
 
-var (
-	alwaysReady = func() bool { return true }
-)
-
 func newDeleteNodeController(kClient kube.Interface, cClient cloudprovider.CloudProvider) *DeleteNodeController {
 	i := informers.NewSharedInformerFactory(kClient, controller.NoResyncPeriodFunc())
 	controller := NewDeleteNodeController(kClient, cClient, i.Core().V1().Pods())
@@ -32,13 +27,13 @@ func TestDeleteNodeController(t *testing.T) {
 	cClient := cloudtest.NewTestCloudProvider()
 	controller := newDeleteNodeController(kClient, cClient)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	doneCh := make(chan struct{})
 	go func() {
 		time.Sleep(1 * time.Millisecond)
-		cancel()
+		close(doneCh)
 	}()
-	err := controller.Run(ctx)
-	assert.Nil(t, err)
+
+	controller.Run(doneCh)
 }
 
 func TestDeleteNodeControllerAddPod(t *testing.T) {
@@ -184,6 +179,6 @@ func TestDeleteNodeControllerUpdatePod(t *testing.T) {
 		}
 		controller.updatePod(pod, pod)
 		assert.Equal(t, 1, len(cClient.DeletedNodes))
-		//assert.Equal(t, &kubernetes.Node{Node: node}, cClient.DeletedNodes[0])
+		assert.Equal(t, flagged_node.Name, cClient.DeletedNodes[0].Name)
 	})
 }

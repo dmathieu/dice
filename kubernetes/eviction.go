@@ -10,7 +10,7 @@ import (
 
 type nodeEvicter struct {
 	client kubernetes.Interface
-	node   *corev1.Node
+	node   *Node
 }
 
 func (n *nodeEvicter) Process() error {
@@ -37,7 +37,7 @@ func (n *nodeEvicter) Process() error {
 func (n *nodeEvicter) markNodeUnschedulable() error {
 	node := n.node
 	node.Spec.Unschedulable = true
-	_, err := n.client.CoreV1().Nodes().Update(node)
+	_, err := n.client.CoreV1().Nodes().Update(node.Node)
 	return err
 }
 
@@ -54,7 +54,7 @@ func (n *nodeEvicter) nodePods() (*corev1.PodList, error) {
 	})
 }
 
-func EvictNode(client kubernetes.Interface, node *corev1.Node) error {
+func EvictNode(client kubernetes.Interface, node *Node) error {
 	ev := &nodeEvicter{client, node}
 	return ev.Process()
 }

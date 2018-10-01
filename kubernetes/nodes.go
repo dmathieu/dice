@@ -21,6 +21,20 @@ func (n *Node) IsFlagged() bool {
 	return n.Labels[flagName] == flagValue
 }
 
+func (n *Node) IsReady() bool {
+	if n.Spec.Unschedulable || len(n.Status.Conditions) == 0 {
+		return false
+	}
+
+	for _, c := range n.Status.Conditions {
+		if c.Status != corev1.ConditionTrue {
+			return false
+		}
+	}
+
+	return true
+}
+
 func NodeFlagged() func(*metav1.ListOptions) {
 	return func(o *metav1.ListOptions) {
 		o.LabelSelector = fmt.Sprintf("%s=%s", flagName, flagValue)
