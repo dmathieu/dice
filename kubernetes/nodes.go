@@ -60,7 +60,7 @@ func GetNodes(client kubernetes.Interface, opts ...func(*metav1.ListOptions)) ([
 
 	var nodes []*Node
 	for _, n := range kn.Items {
-		nodes = append(nodes, &Node{&n})
+		nodes = append(nodes, &Node{n.DeepCopy()})
 	}
 
 	return nodes, nil
