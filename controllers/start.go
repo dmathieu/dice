@@ -13,6 +13,10 @@ type StartController struct {
 	kubeClient kube.Interface
 }
 
+func NewStartController(kClient kube.Interface) *StartController {
+	return &StartController{kubeClient: kClient}
+}
+
 func (c *StartController) Run(concurrency int) error {
 	rand.Seed(time.Now().Unix())
 	err := c.flagNodes()
