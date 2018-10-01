@@ -48,29 +48,5 @@ func (c *StartController) flagNodes() error {
 }
 
 func (c *StartController) evictNodes(concurrency int) error {
-	nodes, err := kubernetes.GetNodes(c.kubeClient) //, kubernetes.NodeFlagged())
-	if err != nil {
-		return err
-	}
-
-	if concurrency > len(nodes) {
-		concurrency = len(nodes)
-	}
-
-	evicted := map[string]*kubernetes.Node{}
-
-	for len(evicted) < concurrency {
-		eNode := nodes[rand.Intn(len(nodes))]
-		if evicted[eNode.Name] != nil {
-			continue
-		}
-
-		err = kubernetes.EvictNode(c.kubeClient, eNode)
-		if err != nil {
-			return err
-		}
-		evicted[eNode.Name] = eNode
-	}
-
-	return nil
+	return kubernetes.EvictNodes(c.kubeClient, concurrency)
 }

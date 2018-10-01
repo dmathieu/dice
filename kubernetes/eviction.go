@@ -1,6 +1,8 @@
 package kubernetes
 
 import (
+	"math/rand"
+
 	corev1 "k8s.io/api/core/v1"
 	policy "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -54,7 +56,31 @@ func (n *nodeEvicter) nodePods() (*corev1.PodList, error) {
 	})
 }
 
-func EvictNode(client kubernetes.Interface, node *Node) error {
-	ev := &nodeEvicter{client, node}
-	return ev.Process()
+func EvictNodes(client kubernetes.Interface, count int) error {
+	nodes, err := GetNodes(client, NodeFlagged())
+	if err != nil {
+		return err
+	}
+
+	if count > len(nodes) {
+		count = len(nodes)
+	}
+
+	evicted := map[string]*Node{}
+
+	for len(evicted) < count {
+		eNode := nodes[rand.Intn(len(nodes))]
+		if evicted[eNode.Name] != nil {
+			continue
+		}
+
+		ev := &nodeEvicter{client, eNode}
+		err := ev.Process()
+		if err != nil {
+			return err
+		}
+		evicted[eNode.Name] = eNode
+	}
+
+	return nil
 }

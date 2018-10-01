@@ -9,7 +9,7 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-func TestEvictNode(t *testing.T) {
+func TestEvictNodes(t *testing.T) {
 	node := &Node{&corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "node",
@@ -17,12 +17,13 @@ func TestEvictNode(t *testing.T) {
 	}}
 	client := fake.NewSimpleClientset(node.Node)
 
-	err := EvictNode(client, node)
+	ev := &nodeEvicter{client, node}
+	err := ev.Process()
 	assert.Nil(t, err)
 	assert.Equal(t, true, node.Spec.Unschedulable)
 }
 
-func TestEvictNodeWithPods(t *testing.T) {
+func TestEvictNodesWithPods(t *testing.T) {
 	node := &Node{&corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "node",
@@ -48,7 +49,8 @@ func TestEvictNodeWithPods(t *testing.T) {
 	}
 	client := fake.NewSimpleClientset(node.Node, podOnNode, podOnOtherNode)
 
-	err := EvictNode(client, node)
+	ev := &nodeEvicter{client, node}
+	err := ev.Process()
 	assert.Nil(t, err)
 
 	pods, err := client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
