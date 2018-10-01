@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dmathieu/dice/cloudprovider"
+	"github.com/dmathieu/dice/kubernetes"
 	corev1 "k8s.io/api/core/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	coreinformers "k8s.io/client-go/informers/core/v1"
@@ -54,11 +55,22 @@ func (c *EvictNodeController) addNode(obj interface{}) {
 }
 
 func (c *EvictNodeController) updateNode(old, cur interface{}) {
+	oldNode, ok := old.(*corev1.Node)
+	if !ok {
+		utilruntime.HandleError(fmt.Errorf("Couldn't get old node %#v", cur))
+		return
+	}
 	node, ok := cur.(*corev1.Node)
 	if !ok {
 		utilruntime.HandleError(fmt.Errorf("Couldn't get node %#v", cur))
 		return
 	}
+
+	if (&kubernetes.Node{Node: oldNode}).IsReady() {
+		// Node was already ready before. We don't need to evict another one.
+		return
+	}
+
 	c.handleNodeChange(node)
 }
 

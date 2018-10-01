@@ -21,6 +21,28 @@ func TestNodeIsFlagged(t *testing.T) {
 	assert.True(t, node.IsFlagged())
 }
 
+func TestNodeIsReady(t *testing.T) {
+	node := &Node{&corev1.Node{}}
+	assert.False(t, node.IsReady())
+
+	node.Node.Spec.Unschedulable = true
+	assert.False(t, node.IsReady())
+
+	node.Status.Conditions = []corev1.NodeCondition{
+		corev1.NodeCondition{Status: corev1.ConditionTrue},
+	}
+	assert.False(t, node.IsReady())
+
+	node.Node.Spec.Unschedulable = false
+	assert.True(t, node.IsReady())
+
+	node.Status.Conditions = []corev1.NodeCondition{
+		corev1.NodeCondition{Status: corev1.ConditionTrue},
+		corev1.NodeCondition{Status: corev1.ConditionFalse},
+	}
+	assert.False(t, node.IsReady())
+}
+
 func TestGetNodes(t *testing.T) {
 	flaggedNode := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
