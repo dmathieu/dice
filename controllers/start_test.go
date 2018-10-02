@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
 	"testing"
 
@@ -35,14 +34,23 @@ func TestStartControllerFlagNodesAlreadyFlagged(t *testing.T) {
 			Name: "node",
 		},
 	}
-	client := fake.NewSimpleClientset(node)
+	secondNode := &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "second-node",
+		},
+	}
+	client := fake.NewSimpleClientset(node, secondNode)
 	controller := &StartController{kubeClient: client}
 
 	err := kubernetes.FlagNode(client, &kubernetes.Node{Node: node})
 	assert.Nil(t, err)
 
 	err = controller.Run(0)
-	assert.Equal(t, errors.New("found already flagged nodes. Looks like a roll process is already running"), err)
+	assert.Nil(t, err)
+
+	nodes, err := kubernetes.GetNodes(client, kubernetes.NodeFlagged())
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(nodes))
 }
 
 func TestStartControllerEvictNodes(t *testing.T) {

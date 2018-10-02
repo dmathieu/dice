@@ -1,11 +1,11 @@
 package controllers
 
 import (
-	"errors"
 	"math/rand"
 	"time"
 
 	"github.com/dmathieu/dice/kubernetes"
+	"github.com/golang/glog"
 	kube "k8s.io/client-go/kubernetes"
 )
 
@@ -24,7 +24,7 @@ func (c *StartController) Run(concurrency int) error {
 		return err
 	}
 
-	return c.evictNodes(concurrency)
+	return kubernetes.EvictNodes(c.kubeClient, concurrency)
 }
 
 func (c *StartController) flagNodes() error {
@@ -33,7 +33,8 @@ func (c *StartController) flagNodes() error {
 		return err
 	}
 	if len(nodes) > 0 {
-		return errors.New("found already flagged nodes. Looks like a roll process is already running")
+		glog.Infof("Found flagged nodes. Continuing with them.")
+		return nil
 	}
 
 	nodes, err = kubernetes.GetNodes(c.kubeClient)
@@ -49,8 +50,4 @@ func (c *StartController) flagNodes() error {
 	}
 
 	return nil
-}
-
-func (c *StartController) evictNodes(concurrency int) error {
-	return kubernetes.EvictNodes(c.kubeClient, concurrency)
 }
