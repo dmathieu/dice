@@ -69,13 +69,6 @@ func TestGetNodes(t *testing.T) {
 		assert.Equal(t, 1, len(nodes))
 		assert.Equal(t, "flagged-node", nodes[0].Name)
 	})
-
-	t.Run("get all non-flagged nodes", func(t *testing.T) {
-		nodes, err := GetNodes(client, NodeNotFlagged())
-		assert.Nil(t, err)
-		assert.Equal(t, 1, len(nodes))
-		assert.Equal(t, "not-flagged-node", nodes[0].Name)
-	})
 }
 
 func TestFindNode(t *testing.T) {
