@@ -14,6 +14,15 @@ import (
 	"k8s.io/kubernetes/pkg/controller"
 )
 
+// DeleteNodeController performs node deletions
+// It listens on pod and node events.
+//
+// For a pod being deleted or updated, it checks that the pod is stopped, and
+// how many pods the node still has. If that node has no pods anymore, it
+// triggers a deletion.
+//
+// For a node being updated, it checks if that node still has pods running. It
+// it doesn't have any, it triggers a deletion.
 type DeleteNodeController struct {
 	kubeClient  kube.Interface
 	cloudClient cloudprovider.CloudProvider
@@ -24,10 +33,11 @@ type DeleteNodeController struct {
 	nodeListerSynced cache.InformerSynced
 }
 
-func NewDeleteNodeController(kClient kube.Interface, cClient cloudprovider.CloudProvider, podInformer coreinformers.PodInformer, nodeInformer coreinformers.NodeInformer) *DeleteNodeController {
+// NewDeleteNodeController instantiates a new deletion controller
+func NewDeleteNodeController(kubeClient kube.Interface, cloudClient cloudprovider.CloudProvider, podInformer coreinformers.PodInformer, nodeInformer coreinformers.NodeInformer) *DeleteNodeController {
 	controller := &DeleteNodeController{
-		kubeClient:   kClient,
-		cloudClient:  cClient,
+		kubeClient:   kubeClient,
+		cloudClient:  cloudClient,
 		podInformer:  podInformer,
 		nodeInformer: nodeInformer,
 	}
@@ -49,6 +59,7 @@ func NewDeleteNodeController(kClient kube.Interface, cClient cloudprovider.Cloud
 	return controller
 }
 
+// Run start the controller
 func (c *DeleteNodeController) Run(doneCh chan struct{}) {
 	defer utilruntime.HandleCrash()
 	if !controller.WaitForCacheSync("delete node", doneCh, c.podListerSynced) {

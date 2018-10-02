@@ -14,16 +14,16 @@ import (
 	"k8s.io/kubernetes/pkg/controller"
 )
 
-func newEvictNodeController(kClient kube.Interface) *EvictNodeController {
-	i := informers.NewSharedInformerFactory(kClient, controller.NoResyncPeriodFunc())
-	controller := NewEvictNodeController(kClient, i.Core().V1().Nodes())
+func newEvictNodeController(client kube.Interface) *EvictNodeController {
+	i := informers.NewSharedInformerFactory(client, controller.NoResyncPeriodFunc())
+	controller := NewEvictNodeController(client, i.Core().V1().Nodes())
 	controller.nodeListerSynced = alwaysReady
 	return controller
 }
 
 func TestEvictNodeController(t *testing.T) {
-	kClient := fake.NewSimpleClientset()
-	controller := newEvictNodeController(kClient)
+	client := fake.NewSimpleClientset()
+	controller := newEvictNodeController(client)
 
 	doneCh := make(chan struct{})
 	go func() {
@@ -36,8 +36,8 @@ func TestEvictNodeController(t *testing.T) {
 func TestEvictNodeControllerDeleteNode(t *testing.T) {
 	node := &corev1.Node{}
 
-	kClient := fake.NewSimpleClientset()
-	controller := newEvictNodeController(kClient)
+	client := fake.NewSimpleClientset()
+	controller := newEvictNodeController(client)
 	controller.deleteNode(node)
 }
 
@@ -61,11 +61,11 @@ func TestEvictNodeControllerNewNoFlagged(t *testing.T) {
 		},
 	}
 
-	kClient := fake.NewSimpleClientset(nonFlaggedNode)
-	controller := newEvictNodeController(kClient)
+	client := fake.NewSimpleClientset(nonFlaggedNode)
+	controller := newEvictNodeController(client)
 	controller.addNode(node)
 
-	nodes, err := kubernetes.GetNodes(kClient)
+	nodes, err := kubernetes.GetNodes(client)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(nodes))
 	assert.Equal(t, false, nodes[0].Spec.Unschedulable)
@@ -92,11 +92,11 @@ func TestEvictNodeControllerNew(t *testing.T) {
 		},
 	}
 
-	kClient := fake.NewSimpleClientset(flaggedNode)
-	controller := newEvictNodeController(kClient)
+	client := fake.NewSimpleClientset(flaggedNode)
+	controller := newEvictNodeController(client)
 	controller.addNode(node)
 
-	nodes, err := kubernetes.GetNodes(kClient)
+	nodes, err := kubernetes.GetNodes(client)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(nodes))
 	assert.Equal(t, true, nodes[0].Spec.Unschedulable)

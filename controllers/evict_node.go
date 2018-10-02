@@ -15,6 +15,11 @@ import (
 	"k8s.io/kubernetes/pkg/controller"
 )
 
+// EvictNodeController is a controller which performs node eviction.
+// It listsns on node events.
+//
+// When a new node comes online and ready to accept pods, it triggers an
+// eviction for another node found randomly.
 type EvictNodeController struct {
 	kubeClient  kube.Interface
 	cloudClient cloudprovider.CloudProvider
@@ -23,10 +28,11 @@ type EvictNodeController struct {
 	nodeListerSynced cache.InformerSynced
 }
 
-func NewEvictNodeController(kClient kube.Interface, nodeInformer coreinformers.NodeInformer) *EvictNodeController {
+// NewEvictNodeController instantiates a new eviction controller
+func NewEvictNodeController(client kube.Interface, nodeInformer coreinformers.NodeInformer) *EvictNodeController {
 	rand.Seed(time.Now().Unix())
 	controller := &EvictNodeController{
-		kubeClient:   kClient,
+		kubeClient:   client,
 		nodeInformer: nodeInformer,
 	}
 
@@ -40,6 +46,7 @@ func NewEvictNodeController(kClient kube.Interface, nodeInformer coreinformers.N
 	return controller
 }
 
+// Run starts the controller
 func (c *EvictNodeController) Run(doneCh chan struct{}) {
 	defer utilruntime.HandleCrash()
 	if !controller.WaitForCacheSync("evict node", doneCh, c.nodeListerSynced) {

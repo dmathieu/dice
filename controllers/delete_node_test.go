@@ -15,18 +15,18 @@ import (
 	"k8s.io/kubernetes/pkg/controller"
 )
 
-func newDeleteNodeController(kClient kube.Interface, cClient cloudprovider.CloudProvider) *DeleteNodeController {
-	i := informers.NewSharedInformerFactory(kClient, controller.NoResyncPeriodFunc())
-	controller := NewDeleteNodeController(kClient, cClient, i.Core().V1().Pods(), i.Core().V1().Nodes())
+func newDeleteNodeController(kubeClient kube.Interface, cloudClient cloudprovider.CloudProvider) *DeleteNodeController {
+	i := informers.NewSharedInformerFactory(kubeClient, controller.NoResyncPeriodFunc())
+	controller := NewDeleteNodeController(kubeClient, cloudClient, i.Core().V1().Pods(), i.Core().V1().Nodes())
 	controller.podListerSynced = alwaysReady
 	controller.nodeListerSynced = alwaysReady
 	return controller
 }
 
 func TestDeleteNodeController(t *testing.T) {
-	kClient := fake.NewSimpleClientset()
+	kubeClient := fake.NewSimpleClientset()
 	cClient := cloudtest.NewTestCloudProvider()
-	controller := newDeleteNodeController(kClient, cClient)
+	controller := newDeleteNodeController(kubeClient, cClient)
 
 	doneCh := make(chan struct{})
 	go func() {
@@ -40,9 +40,9 @@ func TestDeleteNodeController(t *testing.T) {
 func TestDeleteNodeControllerAddPod(t *testing.T) {
 	pod := &corev1.Pod{}
 
-	kClient := fake.NewSimpleClientset()
+	kubeClient := fake.NewSimpleClientset()
 	cClient := cloudtest.NewTestCloudProvider()
-	controller := newDeleteNodeController(kClient, cClient)
+	controller := newDeleteNodeController(kubeClient, cClient)
 	controller.addPod(pod)
 }
 
@@ -56,7 +56,7 @@ func TestDeleteNodeControllerUpdatePod(t *testing.T) {
 			Unschedulable: true,
 		},
 	}
-	flagged_node := &corev1.Node{
+	flaggedNode := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   "flagged-node",
 			Labels: map[string]string{"dice": "roll"},
@@ -65,30 +65,30 @@ func TestDeleteNodeControllerUpdatePod(t *testing.T) {
 			Unschedulable: true,
 		},
 	}
-	schedulable_node := &corev1.Node{
+	schedulableNode := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "schedulable_node",
 		},
 	}
-	node_with_pods := &corev1.Node{
+	nodeWithPods := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   "node_with_pods",
 			Labels: map[string]string{},
 		},
 	}
-	pod_on_node := &corev1.Pod{
+	podOnNode := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "pod_on_node",
 		},
 		Spec: corev1.PodSpec{
-			NodeName: node_with_pods.Name,
+			NodeName: nodeWithPods.Name,
 		},
 	}
 
 	t.Run("when pod is still running", func(t *testing.T) {
-		kClient := fake.NewSimpleClientset()
+		kubeClient := fake.NewSimpleClientset()
 		cClient := cloudtest.NewTestCloudProvider()
-		controller := newDeleteNodeController(kClient, cClient)
+		controller := newDeleteNodeController(kubeClient, cClient)
 
 		pod := &corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
@@ -103,16 +103,16 @@ func TestDeleteNodeControllerUpdatePod(t *testing.T) {
 	})
 
 	t.Run("when node has other pods", func(t *testing.T) {
-		kClient := fake.NewSimpleClientset(node_with_pods, pod_on_node)
+		kubeClient := fake.NewSimpleClientset(nodeWithPods, podOnNode)
 		cClient := cloudtest.NewTestCloudProvider()
-		controller := newDeleteNodeController(kClient, cClient)
+		controller := newDeleteNodeController(kubeClient, cClient)
 
 		pod := &corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "my-pod",
 			},
 			Spec: corev1.PodSpec{
-				NodeName: node_with_pods.Name,
+				NodeName: nodeWithPods.Name,
 			},
 			Status: corev1.PodStatus{
 				Phase: corev1.PodSucceeded,
@@ -123,9 +123,9 @@ func TestDeleteNodeControllerUpdatePod(t *testing.T) {
 	})
 
 	t.Run("when node has no other pods, is unschedulable but node is not flagged", func(t *testing.T) {
-		kClient := fake.NewSimpleClientset(node)
+		kubeClient := fake.NewSimpleClientset(node)
 		cClient := cloudtest.NewTestCloudProvider()
-		controller := newDeleteNodeController(kClient, cClient)
+		controller := newDeleteNodeController(kubeClient, cClient)
 
 		pod := &corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
@@ -143,16 +143,16 @@ func TestDeleteNodeControllerUpdatePod(t *testing.T) {
 	})
 
 	t.Run("when node has no other pods and is schedulable", func(t *testing.T) {
-		kClient := fake.NewSimpleClientset(schedulable_node)
+		kubeClient := fake.NewSimpleClientset(schedulableNode)
 		cClient := cloudtest.NewTestCloudProvider()
-		controller := newDeleteNodeController(kClient, cClient)
+		controller := newDeleteNodeController(kubeClient, cClient)
 
 		pod := &corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "my-pod",
 			},
 			Spec: corev1.PodSpec{
-				NodeName: schedulable_node.Name,
+				NodeName: schedulableNode.Name,
 			},
 			Status: corev1.PodStatus{
 				Phase: corev1.PodSucceeded,
@@ -163,16 +163,16 @@ func TestDeleteNodeControllerUpdatePod(t *testing.T) {
 	})
 
 	t.Run("when node has no other pods, is unschedulable and is flagged", func(t *testing.T) {
-		kClient := fake.NewSimpleClientset(flagged_node)
+		kubeClient := fake.NewSimpleClientset(flaggedNode)
 		cClient := cloudtest.NewTestCloudProvider()
-		controller := newDeleteNodeController(kClient, cClient)
+		controller := newDeleteNodeController(kubeClient, cClient)
 
 		pod := &corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "my-pod",
 			},
 			Spec: corev1.PodSpec{
-				NodeName: flagged_node.Name,
+				NodeName: flaggedNode.Name,
 			},
 			Status: corev1.PodStatus{
 				Phase: corev1.PodSucceeded,
@@ -180,25 +180,25 @@ func TestDeleteNodeControllerUpdatePod(t *testing.T) {
 		}
 		controller.updatePod(pod, pod)
 		assert.Equal(t, 1, len(cClient.DeletedNodes))
-		assert.Equal(t, flagged_node.Name, cClient.DeletedNodes[0].Name)
+		assert.Equal(t, flaggedNode.Name, cClient.DeletedNodes[0].Name)
 	})
 }
 
 func TestDeleteNodeControllerAddNode(t *testing.T) {
 	node := &corev1.Node{}
 
-	kClient := fake.NewSimpleClientset()
+	kubeClient := fake.NewSimpleClientset()
 	cClient := cloudtest.NewTestCloudProvider()
-	controller := newDeleteNodeController(kClient, cClient)
+	controller := newDeleteNodeController(kubeClient, cClient)
 	controller.addNode(node)
 }
 
 func TestDeleteNodeControllerDeleteNode(t *testing.T) {
 	node := &corev1.Node{}
 
-	kClient := fake.NewSimpleClientset()
+	kubeClient := fake.NewSimpleClientset()
 	cClient := cloudtest.NewTestCloudProvider()
-	controller := newDeleteNodeController(kClient, cClient)
+	controller := newDeleteNodeController(kubeClient, cClient)
 	controller.deleteNode(node)
 }
 
@@ -212,7 +212,7 @@ func TestDeleteNodeControllerUpdateNode(t *testing.T) {
 			Unschedulable: true,
 		},
 	}
-	flagged_node := &corev1.Node{
+	flaggedNode := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   "flagged-node",
 			Labels: map[string]string{"dice": "roll"},
@@ -221,25 +221,25 @@ func TestDeleteNodeControllerUpdateNode(t *testing.T) {
 			Unschedulable: true,
 		},
 	}
-	schedulable_node := &corev1.Node{
+	schedulableNode := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "schedulable_node",
 		},
 	}
-	node_with_pods := &corev1.Node{
+	nodeWithPods := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   "node_with_pods",
 			Labels: map[string]string{},
 		},
 	}
 
-	kClient := fake.NewSimpleClientset()
+	kubeClient := fake.NewSimpleClientset()
 	cClient := cloudtest.NewTestCloudProvider()
-	controller := newDeleteNodeController(kClient, cClient)
+	controller := newDeleteNodeController(kubeClient, cClient)
 
 	t.Run("when still has running pods", func(t *testing.T) {
 
-		controller.updateNode(node_with_pods, node_with_pods)
+		controller.updateNode(nodeWithPods, nodeWithPods)
 		assert.Equal(t, 0, len(cClient.DeletedNodes))
 	})
 
@@ -249,18 +249,18 @@ func TestDeleteNodeControllerUpdateNode(t *testing.T) {
 	})
 
 	t.Run("when node has no other pods and is schedulable", func(t *testing.T) {
-		controller.updateNode(schedulable_node, schedulable_node)
+		controller.updateNode(schedulableNode, schedulableNode)
 		assert.Equal(t, 0, len(cClient.DeletedNodes))
 	})
 
 	t.Run("when node was already unschedulable before", func(t *testing.T) {
-		controller.updateNode(schedulable_node, schedulable_node)
+		controller.updateNode(schedulableNode, schedulableNode)
 		assert.Equal(t, 0, len(cClient.DeletedNodes))
 	})
 
 	t.Run("when node has no other pods, is unschedulable and is flagged", func(t *testing.T) {
-		controller.updateNode(schedulable_node, flagged_node)
+		controller.updateNode(schedulableNode, flaggedNode)
 		assert.Equal(t, 1, len(cClient.DeletedNodes))
-		assert.Equal(t, flagged_node.Name, cClient.DeletedNodes[0].Name)
+		assert.Equal(t, flaggedNode.Name, cClient.DeletedNodes[0].Name)
 	})
 }
