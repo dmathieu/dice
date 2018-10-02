@@ -19,12 +19,12 @@ func TestNewCloudProvider(t *testing.T) {
 	t.Run("with the aws cloud provider", func(t *testing.T) {
 		c, err := NewCloudProvider("aws")
 		assert.Nil(t, err)
-		assert.IsType(t, &aws.AWSCloudProvider{}, c)
+		assert.IsType(t, &aws.CloudProvider{}, c)
 	})
 
 	t.Run("with the test cloud provider", func(t *testing.T) {
 		c, err := NewCloudProvider("test")
 		assert.Nil(t, err)
-		assert.IsType(t, &test.TestCloudProvider{}, c)
+		assert.IsType(t, &test.CloudProvider{}, c)
 	})
 }

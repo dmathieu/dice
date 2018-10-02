@@ -11,22 +11,27 @@ import (
 	"github.com/dmathieu/dice/kubernetes"
 )
 
+// ProviderName is the name of this provider
 const ProviderName = "aws"
 
-type AWSCloudProvider struct {
+// CloudProvider is a cloud provider allowing manipulating an AWS cluster
+type CloudProvider struct {
 	svc ec2iface.EC2API
 }
 
+// NewAWSCloudProvider instantiates a new CloudProvider
 func NewAWSCloudProvider() cloudprovider.CloudProvider {
 	svc := ec2.New(session.New())
-	return &AWSCloudProvider{svc}
+	return &CloudProvider{svc}
 }
 
-func (t *AWSCloudProvider) Name() string {
+// Name is the name of that cloud provider
+func (t *CloudProvider) Name() string {
 	return ProviderName
 }
 
-func (t *AWSCloudProvider) Delete(node *kubernetes.Node) error {
+// Delete sends a delete request to the specified instance
+func (t *CloudProvider) Delete(node *kubernetes.Node) error {
 	instance, err := t.findInstanceFromNode(node)
 	if err != nil {
 		return err
@@ -39,7 +44,7 @@ func (t *AWSCloudProvider) Delete(node *kubernetes.Node) error {
 	return err
 }
 
-func (t *AWSCloudProvider) findInstanceFromNode(node *kubernetes.Node) (*ec2.Instance, error) {
+func (t *CloudProvider) findInstanceFromNode(node *kubernetes.Node) (*ec2.Instance, error) {
 	var addresses []*string
 	for _, a := range node.Status.Addresses {
 		addresses = append(addresses, &a.Address)
@@ -57,19 +62,22 @@ func (t *AWSCloudProvider) findInstanceFromNode(node *kubernetes.Node) (*ec2.Ins
 		return nil, err
 	}
 
-	if len(result.Reservations) == 0 {
-		return nil, fmt.Errorf("no instances found matching node %s", node.Name)
+	err = t.checkReservations(node, result.Reservations)
+	if err != nil {
+		return nil, err
 	}
-	if len(result.Reservations) > 1 {
-		return nil, fmt.Errorf("found %d reservations matching node %s", len(result.Reservations), node.Name)
-	}
-	if len(result.Reservations[0].Instances) > 1 {
-		return nil, fmt.Errorf("found %d instances matching node %s", len(result.Reservations[0].Instances), node.Name)
-	}
-
 	return result.Reservations[0].Instances[0], nil
 }
 
-func (t *AWSCloudProvider) Refresh() error {
+func (t *CloudProvider) checkReservations(node *kubernetes.Node, r []*ec2.Reservation) error {
+	if len(r) == 0 {
+		return fmt.Errorf("no instances found matching node %s", node.Name)
+	}
+	if len(r) > 1 {
+		return fmt.Errorf("found %d reservations matching node %s", len(r), node.Name)
+	}
+	if len(r[0].Instances) > 1 {
+		return fmt.Errorf("found %d instances matching node %s", len(r[0].Instances), node.Name)
+	}
 	return nil
 }

@@ -9,7 +9,7 @@ import (
 )
 
 func TestMatchInterfaces(t *testing.T) {
-	assert.Implements(t, (*cloudprovider.CloudProvider)(nil), &TestCloudProvider{})
+	assert.Implements(t, (*cloudprovider.CloudProvider)(nil), &CloudProvider{})
 }
 
 func TestName(t *testing.T) {
@@ -21,9 +21,4 @@ func TestDelete(t *testing.T) {
 	node := &kubernetes.Node{}
 	p := NewTestCloudProvider()
 	assert.Nil(t, p.Delete(node))
-}
-
-func TestRefresh(t *testing.T) {
-	p := NewTestCloudProvider()
-	assert.Nil(t, p.Refresh())
 }

@@ -13,11 +13,11 @@ import (
 )
 
 func TestMatchInterfaces(t *testing.T) {
-	assert.Implements(t, (*cloudprovider.CloudProvider)(nil), &AWSCloudProvider{})
+	assert.Implements(t, (*cloudprovider.CloudProvider)(nil), &CloudProvider{})
 }
 
 func TestName(t *testing.T) {
-	p := &AWSCloudProvider{&mockEC2Client{}}
+	p := &CloudProvider{&mockEC2Client{}}
 	assert.Equal(t, "aws", p.Name())
 }
 
@@ -36,7 +36,7 @@ func TestDelete(t *testing.T) {
 			},
 		},
 	}
-	p := &AWSCloudProvider{client}
+	p := &CloudProvider{client}
 	assert.Nil(t, p.Delete(node))
 }
 
@@ -50,7 +50,7 @@ func TestInstanceFromNode(t *testing.T) {
 	}
 
 	t.Run("when there is no node", func(t *testing.T) {
-		p := &AWSCloudProvider{&mockEC2Client{}}
+		p := &CloudProvider{&mockEC2Client{}}
 		i, err := p.findInstanceFromNode(node)
 		assert.Nil(t, i)
 		assert.Equal(t, errors.New("no instances found matching node my-node"), err)
@@ -63,7 +63,7 @@ func TestInstanceFromNode(t *testing.T) {
 				&ec2.Reservation{},
 			},
 		}
-		p := &AWSCloudProvider{client}
+		p := &CloudProvider{client}
 		i, err := p.findInstanceFromNode(node)
 		assert.Nil(t, i)
 		assert.Equal(t, errors.New("found 2 reservations matching node my-node"), err)
@@ -80,7 +80,7 @@ func TestInstanceFromNode(t *testing.T) {
 				},
 			},
 		}
-		p := &AWSCloudProvider{client}
+		p := &CloudProvider{client}
 		i, err := p.findInstanceFromNode(node)
 		assert.Nil(t, i)
 		assert.Equal(t, errors.New("found 2 instances matching node my-node"), err)
@@ -95,14 +95,9 @@ func TestInstanceFromNode(t *testing.T) {
 				},
 			},
 		}
-		p := &AWSCloudProvider{client}
+		p := &CloudProvider{client}
 		i, err := p.findInstanceFromNode(node)
 		assert.Nil(t, err)
 		assert.Equal(t, instance, i)
 	})
-}
-
-func TestRefresh(t *testing.T) {
-	p := &AWSCloudProvider{&mockEC2Client{}}
-	assert.Nil(t, p.Refresh())
 }
