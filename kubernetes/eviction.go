@@ -58,6 +58,7 @@ func (n *nodeEvicter) nodePods() (*corev1.PodList, error) {
 	})
 }
 
+// EvictNodes finds a set number of random nodes to evict, and drains them of all their pods
 func EvictNodes(client kubernetes.Interface, count int) error {
 	nodes, err := GetNodes(client, NodeFlagged())
 	if err != nil {
@@ -69,13 +70,17 @@ func EvictNodes(client kubernetes.Interface, count int) error {
 	}
 
 	evicted := map[string]*Node{}
+	for _, n := range nodes {
+		if n.Spec.Unschedulable {
+			evicted[n.Name] = n
+		}
+	}
 
 	for len(evicted) < count {
 		eNode := nodes[rand.Intn(len(nodes))]
 		if evicted[eNode.Name] != nil {
 			continue
 		}
-
 		ev := &nodeEvicter{client, eNode}
 		err := ev.Process()
 		if err != nil {

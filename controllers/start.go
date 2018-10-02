@@ -24,7 +24,7 @@ func (c *StartController) Run(concurrency int) error {
 		return err
 	}
 
-	return c.evictNodes(concurrency)
+	return kubernetes.EvictNodes(c.kubeClient, concurrency)
 }
 
 func (c *StartController) flagNodes() error {
@@ -50,8 +50,4 @@ func (c *StartController) flagNodes() error {
 	}
 
 	return nil
-}
-
-func (c *StartController) evictNodes(concurrency int) error {
-	return kubernetes.EvictNodes(c.kubeClient, concurrency)
 }

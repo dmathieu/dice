@@ -9,7 +9,7 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-func TestEvictNodes(t *testing.T) {
+func TestNodeEvicter(t *testing.T) {
 	node := &Node{&corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "node",
@@ -23,7 +23,7 @@ func TestEvictNodes(t *testing.T) {
 	assert.Equal(t, true, node.Spec.Unschedulable)
 }
 
-func TestEvictNodesWithPods(t *testing.T) {
+func TestNodeEvicterWithPods(t *testing.T) {
 	node := &Node{&corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "node",
@@ -56,4 +56,62 @@ func TestEvictNodesWithPods(t *testing.T) {
 	pods, err := client.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(pods.Items))
+}
+
+func TestEvictNodes(t *testing.T) {
+	firstNode := &Node{&corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   "first-node",
+			Labels: map[string]string{flagName: flagValue},
+		},
+	}}
+	secondNode := &Node{&corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   "second-node",
+			Labels: map[string]string{flagName: flagValue},
+		},
+	}}
+	thirdNode := &Node{&corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   "third-node",
+			Labels: map[string]string{flagName: flagValue},
+		},
+	}}
+	client := fake.NewSimpleClientset(firstNode.Node, secondNode.Node, thirdNode.Node)
+
+	t.Run("evicts the set number of nodes", func(t *testing.T) {
+		err := EvictNodes(client, 2)
+		assert.Nil(t, err)
+
+		nodes, err := GetNodes(client)
+		assert.Nil(t, err)
+		evictedCount := 0
+
+		for _, n := range nodes {
+			if n.Spec.Unschedulable {
+				evictedCount = evictedCount + 1
+			}
+		}
+		assert.Equal(t, 2, evictedCount)
+	})
+
+	t.Run("ignores nodes that were already evicted", func(t *testing.T) {
+		err := EvictNodes(client, 2)
+		assert.Nil(t, err)
+
+		ev := &nodeEvicter{client, thirdNode}
+		err = ev.Process()
+		assert.Nil(t, err)
+
+		nodes, err := GetNodes(client)
+		assert.Nil(t, err)
+		evictedCount := 0
+
+		for _, n := range nodes {
+			if n.Spec.Unschedulable {
+				evictedCount = evictedCount + 1
+			}
+		}
+		assert.Equal(t, 2, evictedCount)
+	})
 }
