@@ -42,7 +42,7 @@ var runCmd = &cobra.Command{
 
 		doneCh := make(chan struct{})
 		i := informers.NewSharedInformerFactory(k8Client, time.Second*30)
-		evict := controllers.NewEvictNodeController(k8Client, i.Core().V1().Nodes())
+		evict := controllers.NewEvictNodeController(k8Client, i.Core().V1().Nodes(), concurrency)
 		go evict.Run(doneCh)
 
 		delete := controllers.NewDeleteNodeController(k8Client, cloudClient, i.Core().V1().Pods(), i.Core().V1().Nodes())

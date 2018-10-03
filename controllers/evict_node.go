@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/dmathieu/dice/cloudprovider"
 	"github.com/dmathieu/dice/kubernetes"
 	corev1 "k8s.io/api/core/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -22,17 +21,18 @@ import (
 // eviction for another node found randomly.
 type EvictNodeController struct {
 	kubeClient  kube.Interface
-	cloudClient cloudprovider.CloudProvider
+	concurrency int
 
 	nodeInformer     coreinformers.NodeInformer
 	nodeListerSynced cache.InformerSynced
 }
 
 // NewEvictNodeController instantiates a new eviction controller
-func NewEvictNodeController(client kube.Interface, nodeInformer coreinformers.NodeInformer) *EvictNodeController {
+func NewEvictNodeController(client kube.Interface, nodeInformer coreinformers.NodeInformer, concurrency int) *EvictNodeController {
 	rand.Seed(time.Now().Unix())
 	controller := &EvictNodeController{
 		kubeClient:   client,
+		concurrency:  concurrency,
 		nodeInformer: nodeInformer,
 	}
 
@@ -104,7 +104,7 @@ func (c *EvictNodeController) handleNodeChange(n *corev1.Node) {
 		return
 	}
 
-	err = kubernetes.EvictNodes(c.kubeClient, 1)
+	err = kubernetes.EvictNodes(c.kubeClient, c.concurrency)
 	if err != nil {
 		utilruntime.HandleError(err)
 		return
