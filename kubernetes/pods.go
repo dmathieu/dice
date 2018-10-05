@@ -42,7 +42,11 @@ func GetPods(client kubernetes.Interface, opts ...func(*metav1.ListOptions)) ([]
 
 	var pods []*Pod
 	for _, p := range kp.Items {
-		pods = append(pods, &Pod{&p})
+		controller := metav1.GetControllerOf(&p)
+		if controller != nil && controller.Kind == "DaemonSet" {
+			continue
+		}
+		pods = append(pods, &Pod{p.DeepCopy()})
 	}
 
 	return pods, nil
