@@ -29,7 +29,7 @@ func TestNodeIsReady(t *testing.T) {
 	assert.False(t, node.IsReady())
 
 	node.Status.Conditions = []corev1.NodeCondition{
-		corev1.NodeCondition{Status: corev1.ConditionTrue},
+		corev1.NodeCondition{Type: corev1.NodeReady, Status: corev1.ConditionTrue},
 	}
 	assert.False(t, node.IsReady())
 
@@ -38,7 +38,10 @@ func TestNodeIsReady(t *testing.T) {
 
 	node.Status.Conditions = []corev1.NodeCondition{
 		corev1.NodeCondition{Status: corev1.ConditionTrue},
-		corev1.NodeCondition{Status: corev1.ConditionFalse},
+		corev1.NodeCondition{
+			Type:   corev1.NodeReady,
+			Status: corev1.ConditionFalse,
+		},
 	}
 	assert.False(t, node.IsReady())
 }

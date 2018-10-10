@@ -29,9 +29,19 @@ func (n *Node) IsReady() bool {
 		return false
 	}
 
-	for _, c := range n.Status.Conditions {
-		if c.Status != corev1.ConditionTrue {
-			return false
+	conditionMap := make(map[corev1.NodeConditionType]*corev1.NodeCondition)
+	conditions := []corev1.NodeConditionType{corev1.NodeReady}
+
+	for i := range n.Status.Conditions {
+		cond := n.Status.Conditions[i]
+		conditionMap[cond.Type] = &cond
+	}
+
+	for _, validCondition := range conditions {
+		if condition, ok := conditionMap[validCondition]; ok {
+			if condition.Status == corev1.ConditionFalse {
+				return false
+			}
 		}
 	}
 
