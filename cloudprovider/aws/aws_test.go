@@ -53,7 +53,7 @@ func TestInstanceFromNode(t *testing.T) {
 		p := &CloudProvider{&mockEC2Client{}}
 		i, err := p.findInstanceFromNode(node)
 		assert.Nil(t, i)
-		assert.Equal(t, errors.New("no instances found matching node my-node"), err)
+		assert.Equal(t, errors.New("no reservations found matching node my-node"), err)
 	})
 
 	t.Run("when there are several reservations", func(t *testing.T) {

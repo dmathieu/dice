@@ -53,7 +53,7 @@ func (t *CloudProvider) findInstanceFromNode(node *kubernetes.Node) (*ec2.Instan
 	result, err := t.svc.DescribeInstances(&ec2.DescribeInstancesInput{
 		Filters: []*ec2.Filter{
 			&ec2.Filter{
-				Name:   aws.String("network-interface.private-dns-name"),
+				Name:   aws.String("private-dns-name"),
 				Values: addresses,
 			},
 		},
@@ -71,7 +71,7 @@ func (t *CloudProvider) findInstanceFromNode(node *kubernetes.Node) (*ec2.Instan
 
 func (t *CloudProvider) checkReservations(node *kubernetes.Node, r []*ec2.Reservation) error {
 	if len(r) == 0 {
-		return fmt.Errorf("no instances found matching node %s", node.Name)
+		return fmt.Errorf("no reservations found matching node %s", node.Name)
 	}
 	if len(r) > 1 {
 		return fmt.Errorf("found %d reservations matching node %s", len(r), node.Name)
