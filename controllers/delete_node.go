@@ -95,19 +95,9 @@ func (c *DeleteNodeController) addNode(obj interface{}) {
 }
 
 func (c *DeleteNodeController) updateNode(old, cur interface{}) {
-	oldNode, ok := old.(*corev1.Node)
-	if !ok {
-		utilruntime.HandleError(fmt.Errorf("Couldn't get old node %#v", cur))
-		return
-	}
 	node, ok := cur.(*corev1.Node)
 	if !ok {
 		utilruntime.HandleError(fmt.Errorf("Couldn't get node %#v", cur))
-		return
-	}
-
-	if oldNode.Spec.Unschedulable {
-		// Node was already non-ready before. We don't need to delete again.
 		return
 	}
 
