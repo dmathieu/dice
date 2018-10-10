@@ -40,29 +40,29 @@ var runCmd = &cobra.Command{
 
 		glog.Infof("Starting controllers")
 
-		doneCh := make(chan struct{})
 		i := informers.NewSharedInformerFactory(k8Client, time.Second*30)
 		evict := controllers.NewEvictNodeController(k8Client, i.Core().V1().Nodes(), concurrency)
-		go evict.Run(doneCh)
+		evictDoneCh := make(chan struct{})
+		go evict.Run(evictDoneCh)
 
 		delete := controllers.NewDeleteNodeController(k8Client, cloudClient, i.Core().V1().Pods(), i.Core().V1().Nodes())
-		go delete.Run(doneCh)
+		deleteDoneCh := make(chan struct{})
+		defer close(deleteDoneCh)
+		go delete.Run(deleteDoneCh)
 
-		i.Start(doneCh)
+		informerDoneCh := make(chan struct{})
+		defer close(informerDoneCh)
+		i.Start(informerDoneCh)
 
 		start := controllers.NewStartController(k8Client)
 		err = start.Run(concurrency)
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		glog.Infof("Started all controllers")
 
-		for {
-			select {
-			case <-doneCh:
-				return
-			}
-		}
+		<-evictDoneCh
 	},
 }
 

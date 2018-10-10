@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dmathieu/dice/kubernetes"
+	"github.com/golang/glog"
 	corev1 "k8s.io/api/core/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	coreinformers "k8s.io/client-go/informers/core/v1"
@@ -22,6 +23,7 @@ import (
 type EvictNodeController struct {
 	kubeClient  kube.Interface
 	concurrency int
+	doneCh      chan struct{}
 
 	nodeInformer     coreinformers.NodeInformer
 	nodeListerSynced cache.InformerSynced
@@ -52,7 +54,24 @@ func (c *EvictNodeController) Run(doneCh chan struct{}) {
 	if !controller.WaitForCacheSync("evict node", doneCh, c.nodeListerSynced) {
 		return
 	}
-	<-doneCh
+
+	err := kubernetes.EvictNodes(c.kubeClient, c.concurrency)
+	if err != nil {
+		utilruntime.HandleError(err)
+	}
+
+	c.doneCh = make(chan struct{})
+
+	for {
+		select {
+		case <-c.doneCh:
+			close(doneCh)
+			return
+		case <-doneCh:
+			close(c.doneCh)
+			return
+		}
+	}
 }
 
 func (c *EvictNodeController) addNode(obj interface{}) {
@@ -101,6 +120,8 @@ func (c *EvictNodeController) handleNodeChange(n *corev1.Node) {
 		return
 	}
 	if len(nodes) == 0 {
+		glog.Infof("My job here is done!")
+		close(c.doneCh)
 		return
 	}
 

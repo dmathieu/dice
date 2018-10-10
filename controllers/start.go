@@ -23,12 +23,7 @@ func NewStartController(client kube.Interface) *StartController {
 // Run executes the actions from StartController
 func (c *StartController) Run(concurrency int) error {
 	rand.Seed(time.Now().Unix())
-	err := c.flagNodes()
-	if err != nil {
-		return err
-	}
-
-	return kubernetes.EvictNodes(c.kubeClient, concurrency)
+	return c.flagNodes()
 }
 
 func (c *StartController) flagNodes() error {
