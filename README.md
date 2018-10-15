@@ -15,3 +15,43 @@ Whenever running the process, it will:
 
 The only supported cloud provider at the moment is AWS. If you need support for another provider, help is more than welcome.  
 Dice assumes the cluster has an auto-scaler running, so when a node is deleted, another one can be booted.
+
+## Supported Providers
+
+Only AWS is currently supported
+
+## Usage
+
+### In Cluster
+
+You can run Dice as a job in cluster:
+
+```
+kubeclt apply -f examples/dice-aws.yaml
+```
+
+Note that kubernetes then needs to be able to delete AWS instances. That can be done with an IAM policy similar to this:
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:TerminateInstances"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+
+### Out of Cluster
+
+You can run dice from your own machines (good for testing, but it shouldn't be used on production workloads).
+
+```
+go get -u github.com/dmathieu/dice
+dice run -c aws
+```
