@@ -119,7 +119,7 @@ func (c *EvictNodeController) handleNodeChange(n *corev1.Node) {
 		utilruntime.HandleError(err)
 		return
 	}
-	if len(nodes) == 0 {
+	if len(nodes) == 0 && c.doneCh != nil {
 		glog.Infof("My job here is done!")
 		close(c.doneCh)
 		return

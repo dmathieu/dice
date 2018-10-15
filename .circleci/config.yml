@@ -17,3 +17,28 @@ jobs:
       - run:
           name: Upload coverage to CircleCI
           command: ./cc-test-reporter after-build --exit-code $?
+  release:
+    docker:
+      - image: circleci/golang:1.10
+    working_directory: /go/src/github.com/dmathieu/dice
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Log into Docker Hub
+          command: docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
+      - run:
+          name: Compile and release
+          command: bin/release
+workflows:
+  version: 2
+  build-release:
+    jobs:
+      - build
+      - release:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master

@@ -40,6 +40,12 @@ var runCmd = &cobra.Command{
 
 		glog.Infof("Starting controllers")
 
+		start := controllers.NewStartController(k8Client)
+		err = start.Run(concurrency)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		i := informers.NewSharedInformerFactory(k8Client, time.Second*30)
 		evict := controllers.NewEvictNodeController(k8Client, i.Core().V1().Nodes(), concurrency)
 		evictDoneCh := make(chan struct{})
@@ -53,12 +59,6 @@ var runCmd = &cobra.Command{
 		informerDoneCh := make(chan struct{})
 		defer close(informerDoneCh)
 		i.Start(informerDoneCh)
-
-		start := controllers.NewStartController(k8Client)
-		err = start.Run(concurrency)
-		if err != nil {
-			log.Fatal(err)
-		}
 
 		glog.Infof("Started all controllers")
 
