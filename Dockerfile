@@ -1,6 +1,4 @@
-FROM busybox:1.29
+FROM k8s.gcr.io/debian-base-amd64:0.3.2
 
-COPY dice /bin/dice
-
-WORKDIR    /home
-ENTRYPOINT "/bin/dice"
+COPY dice /home
+WORKDIR /home
