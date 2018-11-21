@@ -9,24 +9,19 @@ import (
 	kube "k8s.io/client-go/kubernetes"
 )
 
-// StartController is a controller that does all the bootstrap actions.
-// Those include flagging all nodes as needing to be restarted, and triggering the first eviction.
-type StartController struct {
+// AllNodesFlaggerController is a controller that flags all nodes to be drained.
+type AllNodesFlaggerController struct {
 	kubeClient kube.Interface
 }
 
-// NewStartController creates a new Start Controller
-func NewStartController(client kube.Interface) *StartController {
-	return &StartController{kubeClient: client}
+// AllNodesFlaggerController creates a new controller which flags all nodes for replacement
+func NewAllNodesFlaggerController(client kube.Interface) *AllNodesFlaggerController {
+	return &AllNodesFlaggerController{kubeClient: client}
 }
 
-// Run executes the actions from StartController
-func (c *StartController) Run(concurrency int) error {
+// Run executes the actions from the controller
+func (c *AllNodesFlaggerController) Run() error {
 	rand.Seed(time.Now().Unix())
-	return c.flagNodes()
-}
-
-func (c *StartController) flagNodes() error {
 	nodes, err := kubernetes.GetNodes(c.kubeClient)
 	if err != nil {
 		return err

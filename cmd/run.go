@@ -27,8 +27,8 @@ var runCmd = &cobra.Command{
 
 		glog.Infof("Starting controllers")
 
-		start := controllers.NewStartController(k8Client)
-		err = start.Run(concurrency)
+		flagger := controllers.NewAllNodesFlaggerController(k8Client)
+		err = flagger.Run()
 		if err != nil {
 			log.Fatal(err)
 		}

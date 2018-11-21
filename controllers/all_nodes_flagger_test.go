@@ -10,16 +10,16 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-func TestStartControllerFlagNodes(t *testing.T) {
+func TestAllNodesFlaggerControllerFlagNodes(t *testing.T) {
 	node := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "node",
 		},
 	}
 	client := fake.NewSimpleClientset(node)
-	controller := &StartController{kubeClient: client}
+	controller := &AllNodesFlaggerController{kubeClient: client}
 
-	err := controller.Run(0)
+	err := controller.Run()
 	assert.Nil(t, err)
 
 	nodes, err := kubernetes.GetNodes(client, kubernetes.NodeFlagged())
@@ -27,7 +27,7 @@ func TestStartControllerFlagNodes(t *testing.T) {
 	assert.Equal(t, 1, len(nodes))
 }
 
-func TestStartControllerFlagNodesAlreadyFlagged(t *testing.T) {
+func TestAllNodesFlaggerControllerFlagNodesAlreadyFlagged(t *testing.T) {
 	node := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "node",
@@ -39,12 +39,12 @@ func TestStartControllerFlagNodesAlreadyFlagged(t *testing.T) {
 		},
 	}
 	client := fake.NewSimpleClientset(node, secondNode)
-	controller := &StartController{kubeClient: client}
+	controller := &AllNodesFlaggerController{kubeClient: client}
 
 	err := kubernetes.FlagNode(client, &kubernetes.Node{Node: node})
 	assert.Nil(t, err)
 
-	err = controller.Run(0)
+	err = controller.Run()
 	assert.Nil(t, err)
 
 	nodes, err := kubernetes.GetNodes(client, kubernetes.NodeFlagged())
