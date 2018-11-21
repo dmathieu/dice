@@ -24,20 +24,20 @@ func (w *watchControllers) Close() {
 	close(w.informerDoneCh)
 }
 
-func runWatchControllers(k8Client kubernetes.Interface, cloudClient cloudprovider.CloudProvider) (*watchControllers, error) {
+func runWatchControllers(k8Client kubernetes.Interface, cloudClient cloudprovider.CloudProvider, c int, i bool) (*watchControllers, error) {
 	w := &watchControllers{}
 
-	i := informers.NewSharedInformerFactory(k8Client, time.Second*30)
-	evict := controllers.NewEvictNodeController(k8Client, i.Core().V1().Nodes(), concurrency)
+	inform := informers.NewSharedInformerFactory(k8Client, time.Second*30)
+	evict := controllers.NewEvictNodeController(k8Client, inform.Core().V1().Nodes(), c, i)
 	w.evictDoneCh = make(chan struct{})
 	go evict.Run(w.evictDoneCh)
 
-	delete := controllers.NewDeleteNodeController(k8Client, cloudClient, i.Core().V1().Pods(), i.Core().V1().Nodes())
+	delete := controllers.NewDeleteNodeController(k8Client, cloudClient, inform.Core().V1().Pods(), inform.Core().V1().Nodes())
 	w.deleteDoneCh = make(chan struct{})
 	go delete.Run(w.deleteDoneCh)
 
 	w.informerDoneCh = make(chan struct{})
-	i.Start(w.informerDoneCh)
+	inform.Start(w.informerDoneCh)
 
 	return w, nil
 }

@@ -33,7 +33,7 @@ var runCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		c, err := runWatchControllers(k8Client, cloudClient)
+		c, err := runWatchControllers(k8Client, cloudClient, concurrency, false)
 		if err != nil {
 			log.Fatal(err)
 		}

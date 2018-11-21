@@ -23,6 +23,7 @@ import (
 type EvictNodeController struct {
 	kubeClient  kube.Interface
 	concurrency int
+	infinite    bool
 	doneCh      chan struct{}
 
 	nodeInformer     coreinformers.NodeInformer
@@ -30,11 +31,12 @@ type EvictNodeController struct {
 }
 
 // NewEvictNodeController instantiates a new eviction controller
-func NewEvictNodeController(client kube.Interface, nodeInformer coreinformers.NodeInformer, concurrency int) *EvictNodeController {
+func NewEvictNodeController(client kube.Interface, nodeInformer coreinformers.NodeInformer, c int, i bool) *EvictNodeController {
 	rand.Seed(time.Now().Unix())
 	controller := &EvictNodeController{
 		kubeClient:   client,
-		concurrency:  concurrency,
+		concurrency:  c,
+		infinite:     i,
 		nodeInformer: nodeInformer,
 	}
 
@@ -119,7 +121,7 @@ func (c *EvictNodeController) handleNodeChange(n *corev1.Node) {
 		utilruntime.HandleError(err)
 		return
 	}
-	if len(nodes) == 0 && c.doneCh != nil {
+	if len(nodes) == 0 && c.doneCh != nil && !c.infinite {
 		glog.Infof("My job here is done!")
 		close(c.doneCh)
 		return

@@ -16,7 +16,7 @@ import (
 
 func newEvictNodeController(client kube.Interface) *EvictNodeController {
 	i := informers.NewSharedInformerFactory(client, controller.NoResyncPeriodFunc())
-	controller := NewEvictNodeController(client, i.Core().V1().Nodes(), 1)
+	controller := NewEvictNodeController(client, i.Core().V1().Nodes(), 1, false)
 	controller.nodeListerSynced = alwaysReady
 	controller.doneCh = make(chan struct{})
 	return controller
