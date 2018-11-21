@@ -17,8 +17,8 @@ type OldNodesFlaggerController struct {
 }
 
 // NewOldNodesFlaggerController creates a new controller which flags old nodes for replacement
-func NewOldNodesFlaggerController(client kube.Interface) *OldNodesFlaggerController {
-	return &OldNodesFlaggerController{kubeClient: client}
+func NewOldNodesFlaggerController(client kube.Interface, i time.Duration) *OldNodesFlaggerController {
+	return &OldNodesFlaggerController{kubeClient: client, interval: i}
 }
 
 // Run executes the actions from the controller
