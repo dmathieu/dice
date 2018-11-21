@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -33,6 +35,8 @@ func init() {
 	if os.Getenv("KUBECONFIG") != "" {
 		defaultKubeConfig = os.Getenv("KUBECONFIG")
 	}
+
+	rand.Seed(time.Now().Unix())
 
 	rootCmd.PersistentFlags().StringVarP(&kubeConfig, "kube-config", "k", defaultKubeConfig, "Path to the kubernetes config, when running out of the cluster")
 	rootCmd.PersistentFlags().StringVarP(&cloud, "cloud", "c", "", "Cloud Provider used by the cluster")

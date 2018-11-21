@@ -1,9 +1,6 @@
 package controllers
 
 import (
-	"math/rand"
-	"time"
-
 	"github.com/dmathieu/dice/kubernetes"
 	"github.com/golang/glog"
 	kube "k8s.io/client-go/kubernetes"
@@ -21,7 +18,6 @@ func NewAllNodesFlaggerController(client kube.Interface) *AllNodesFlaggerControl
 
 // Run executes the actions from the controller
 func (c *AllNodesFlaggerController) Run() error {
-	rand.Seed(time.Now().Unix())
 	nodes, err := kubernetes.GetNodes(c.kubeClient)
 	if err != nil {
 		return err

@@ -2,8 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
 
 	"github.com/dmathieu/dice/kubernetes"
 	"github.com/golang/glog"
@@ -32,7 +30,6 @@ type EvictNodeController struct {
 
 // NewEvictNodeController instantiates a new eviction controller
 func NewEvictNodeController(client kube.Interface, nodeInformer coreinformers.NodeInformer, c int, i bool) *EvictNodeController {
-	rand.Seed(time.Now().Unix())
 	controller := &EvictNodeController{
 		kubeClient:   client,
 		concurrency:  c,
