@@ -14,7 +14,7 @@ type AllNodesFlaggerController struct {
 	kubeClient kube.Interface
 }
 
-// AllNodesFlaggerController creates a new controller which flags all nodes for replacement
+// NewAllNodesFlaggerController creates a new controller which flags all nodes for replacement
 func NewAllNodesFlaggerController(client kube.Interface) *AllNodesFlaggerController {
 	return &AllNodesFlaggerController{kubeClient: client}
 }
