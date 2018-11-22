@@ -55,6 +55,13 @@ func NodeFlagged() func(*metav1.ListOptions) {
 	}
 }
 
+// NodeNotFlagged allows filtering to find only nodes that are not flagged in GetNodes
+func NodeNotFlagged() func(*metav1.ListOptions) {
+	return func(o *metav1.ListOptions) {
+		o.LabelSelector = fmt.Sprintf("%s!=%s", flagName, flagValue)
+	}
+}
+
 // GetNodes lists nodes with optional filters
 func GetNodes(client kubernetes.Interface, opts ...func(*metav1.ListOptions)) ([]*Node, error) {
 	options := &metav1.ListOptions{}

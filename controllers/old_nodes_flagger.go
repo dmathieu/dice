@@ -28,7 +28,7 @@ func (c *OldNodesFlaggerController) Run(doneCh chan struct{}, maxUptime time.Dur
 	for {
 		select {
 		case <-ticker.C:
-			nodes, err := kubernetes.GetNodes(c.kubeClient)
+			nodes, err := kubernetes.GetNodes(c.kubeClient, kubernetes.NodeNotFlagged())
 			if err != nil {
 				utilruntime.HandleError(err)
 			}
