@@ -2,9 +2,16 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/dmathieu/dice/cloudprovider"
+	"github.com/dmathieu/dice/cloudprovider/builder"
+	"k8s.io/client-go/kubernetes"
+	restclient "k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 var wfRegex = regexp.MustCompile("^([0-9]+)(s|m|h|d)$")
@@ -35,4 +42,34 @@ func parseWatchFrequency(wf string) (*time.Duration, error) {
 	}
 
 	return &d, nil
+}
+
+func k8Config() (*restclient.Config, error) {
+	if len(os.Getenv("KUBERNETES_SERVICE_PORT")) > 0 && len(os.Getenv("KUBERNETES_SERVICE_HOST")) > 0 {
+		return restclient.InClusterConfig()
+	}
+	fmt.Fprintf(os.Stdout, "CONFIG: %q\n", kubeConfig)
+	return clientcmd.BuildConfigFromFlags("", kubeConfig)
+}
+
+func getK8Client() (*kubernetes.Clientset, error) {
+	k8Config, err := k8Config()
+	if err != nil {
+		return nil, err
+	}
+	return kubernetes.NewForConfig(k8Config)
+}
+
+func buildClients(cloud string) (*kubernetes.Clientset, cloudprovider.CloudProvider, error) {
+	k8Client, err := getK8Client()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cloudClient, err := builder.NewCloudProvider(cloud)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return k8Client, cloudClient, nil
 }

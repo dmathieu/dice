@@ -4,7 +4,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/dmathieu/dice/cloudprovider/builder"
 	"github.com/dmathieu/dice/controllers"
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
@@ -18,12 +17,7 @@ var loopCmd = &cobra.Command{
 	Short: "Continuously roll the instances",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		k8Client, err := getK8Client()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		cloudClient, err := builder.NewCloudProvider(cloud)
+		k8Client, cloudClient, err := buildClients(cloud)
 		if err != nil {
 			log.Fatal(err)
 		}
