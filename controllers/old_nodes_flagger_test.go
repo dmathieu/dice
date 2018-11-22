@@ -11,6 +11,12 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
+func TestNewOldNodesFlaggerController(t *testing.T) {
+	client := fake.NewSimpleClientset()
+	c := NewOldNodesFlaggerController(client, time.Second)
+	assert.NotNil(t, c)
+}
+
 func TestOldNodesFlaggerControllerFlagNodes(t *testing.T) {
 	now := time.Now()
 	firstNode := &corev1.Node{
