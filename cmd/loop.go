@@ -10,6 +10,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var watchFrequency string
+
 // loopCmd represents the loop command
 var loopCmd = &cobra.Command{
 	Use:   "loop",
@@ -26,9 +28,11 @@ var loopCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
+		wf, err := parseWatchFrequency(watchFrequency)
+
 		glog.Infof("Starting controllers")
 		doneCh := make(chan struct{})
-		flagger := controllers.NewOldNodesFlaggerController(k8Client, 5*time.Minute)
+		flagger := controllers.NewOldNodesFlaggerController(k8Client, *wf)
 		flagger.Run(doneCh, 24*time.Hour)
 
 		c, err := runWatchControllers(k8Client, cloudClient, concurrency, true)
@@ -46,4 +50,6 @@ var loopCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(loopCmd)
+
+	rootCmd.PersistentFlags().StringVarP(&watchFrequency, "watch-frequency", "w", "10d", "How frequently the watcher will look for nodes to destroy")
 }
