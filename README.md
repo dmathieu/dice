@@ -13,7 +13,6 @@ Whenever running the process, it will:
 * Listen for all new nodes arriving on the cluster.
   * When a new node comes up, it will move on to evicting the pods on another one.
 
-The only supported cloud provider at the moment is AWS. If you need support for another provider, help is more than welcome.  
 Dice assumes the cluster has an auto-scaler running, so when a node is deleted, another one can be booted.
 
 ## Supported Providers
@@ -24,13 +23,7 @@ Only AWS is currently supported
 
 ### In Cluster
 
-You can run Dice as a job in cluster:
-
-```
-kubeclt apply -f examples/dice-aws.yaml
-```
-
-Note that kubernetes then needs to be able to delete AWS instances. That can be done with an IAM policy similar to this:
+In order to run dice within the cluster, kubernetes needs to be able to delete AWS instances. That can be done with the following IAM policy:
 
 ```
 {
@@ -47,6 +40,24 @@ Note that kubernetes then needs to be able to delete AWS instances. That can be 
 }
 ```
 
+#### As a one-off
+
+Running dice as a one-off is a good use case when you have changed the boot
+configuration for your instances for examples, and you need new ones with the
+appropriate config.
+
+```
+kubeclt apply -f examples/dice-aws.yaml
+```
+
+#### Regularly roll instances
+
+You may want to regularly roll instances if they are too old. This allows rolling out the fleet on a regular cadence.
+
+```
+kubeclt apply -f examples/loop-aws.yaml
+```
+
 ### Out of Cluster
 
 You can run dice from your own machines (good for testing, but it shouldn't be used on production workloads).
@@ -55,3 +66,6 @@ You can run dice from your own machines (good for testing, but it shouldn't be u
 go get -u github.com/dmathieu/dice
 dice run -c aws
 ```
+
+Note: you can run the permanent loop out of the cluster with the `dice loop -c aws` command.
+This is not recommended however, as you would then need to have the process running permanently.
