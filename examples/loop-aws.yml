@@ -33,7 +33,7 @@ subjects:
     name: dice
     namespace: kube-system
 ---
-apiVersion: batch/v1
+apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   name: dice
@@ -41,6 +41,9 @@ metadata:
 spec:
   replicas: 2
   template:
+    metadata:
+      labels:
+        app: dice
     spec:
       serviceAccountName: dice
       containers:
@@ -50,6 +53,7 @@ spec:
           - ./dice
           - loop
           - -c=aws
+          - -w=30d
         env:
           - name: AWS_REGION
             value: us-east-1
