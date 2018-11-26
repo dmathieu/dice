@@ -52,5 +52,14 @@ spec:
         env:
           - name: AWS_REGION
             value: us-east-1
+        volumeMounts:
+          - name: ssl-certs
+            mountPath: /etc/ssl/certs/ca-bundle.crt
+            readOnly: true
+        imagePullPolicy: "Always"
+      volumes:
+        - name: ssl-certs
+          hostPath:
+            path: "/etc/ssl/certs/ca-bundle.crt"
       restartPolicy: OnFailure
   backoffLimit: 10
