@@ -27,7 +27,7 @@ var loopCmd = &cobra.Command{
 		glog.Infof("Starting controllers")
 		doneCh := make(chan struct{})
 		flagger := controllers.NewOldNodesFlaggerController(k8Client, *wf)
-		flagger.Run(doneCh, 24*time.Hour)
+		go flagger.Run(doneCh, 24*time.Hour)
 
 		c, err := runWatchControllers(k8Client, cloudClient, concurrency, true)
 		if err != nil {

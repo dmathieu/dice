@@ -24,6 +24,7 @@ func NewOldNodesFlaggerController(client kube.Interface, i time.Duration) *OldNo
 
 // Run executes the actions from the controller
 func (c *OldNodesFlaggerController) Run(doneCh chan struct{}, maxUptime time.Duration) {
+	defer utilruntime.HandleCrash()
 	ticker := time.NewTicker(c.interval)
 
 	for {
