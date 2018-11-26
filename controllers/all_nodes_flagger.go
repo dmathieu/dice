@@ -31,6 +31,7 @@ func (c *AllNodesFlaggerController) Run() error {
 	}
 
 	for _, n := range nodes {
+		glog.Infof("Flagging node %q", n.ObjectMeta.Name)
 		err = kubernetes.FlagNode(c.kubeClient, n)
 		if err != nil {
 			return err

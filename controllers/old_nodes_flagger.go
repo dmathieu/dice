@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/dmathieu/dice/kubernetes"
+	"github.com/golang/glog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	kube "k8s.io/client-go/kubernetes"
@@ -36,6 +37,7 @@ func (c *OldNodesFlaggerController) Run(doneCh chan struct{}, maxUptime time.Dur
 			t := metav1.NewTime(time.Now().Add(0 - maxUptime))
 			for _, n := range nodes {
 				if n.ObjectMeta.CreationTimestamp.Before(&t) {
+					glog.Infof("Flagging node %q", n.ObjectMeta.Name)
 					err = kubernetes.FlagNode(c.kubeClient, n)
 					if err != nil {
 						utilruntime.HandleError(err)
