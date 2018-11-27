@@ -2,14 +2,16 @@ package cmd
 
 import (
 	"log"
-	"time"
 
 	"github.com/dmathieu/dice/controllers"
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 )
 
-var watchFrequency string
+var (
+	watchFrequency string
+	maxUptime      string
+)
 
 // loopCmd represents the loop command
 var loopCmd = &cobra.Command{
@@ -22,12 +24,19 @@ var loopCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		wf, err := parseWatchFrequency(watchFrequency)
+		wf, err := parseStringDuration(watchFrequency)
+		if err != nil {
+			log.Fatalf("watch frequency: %q", err)
+		}
+		uptime, err := parseStringDuration(maxUptime)
+		if err != nil {
+			log.Fatalf("uptime: %q", err)
+		}
 
 		glog.Infof("Starting controllers")
 		doneCh := make(chan struct{})
 		flagger := controllers.NewOldNodesFlaggerController(k8Client, *wf)
-		go flagger.Run(doneCh, 24*time.Hour)
+		go flagger.Run(doneCh, *uptime)
 
 		c, err := runWatchControllers(k8Client, cloudClient, concurrency, true)
 		if err != nil {
@@ -45,5 +54,6 @@ var loopCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(loopCmd)
 
-	rootCmd.PersistentFlags().StringVarP(&watchFrequency, "watch-frequency", "w", "10d", "How frequently the watcher will look for nodes to destroy")
+	rootCmd.PersistentFlags().StringVarP(&watchFrequency, "watch-frequency", "w", "5m", "How frequently the watcher will look for nodes to destroy")
+	rootCmd.PersistentFlags().StringVarP(&maxUptime, "max-uptime", "u", "10d", "The uptime after which dice will kill an instance")
 }

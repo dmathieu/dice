@@ -16,10 +16,10 @@ import (
 
 var wfRegex = regexp.MustCompile("^([0-9]+)(s|m|h|d)$")
 
-func parseWatchFrequency(wf string) (*time.Duration, error) {
+func parseStringDuration(wf string) (*time.Duration, error) {
 	s := wfRegex.FindStringSubmatch(wf)
 	if len(s) != 3 {
-		return nil, fmt.Errorf("invalid watch frequency %q", wf)
+		return nil, fmt.Errorf("invalid duration %q", wf)
 	}
 	v, err := strconv.Atoi(s[1])
 	if err != nil {
