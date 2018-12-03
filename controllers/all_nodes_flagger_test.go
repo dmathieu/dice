@@ -28,26 +28,17 @@ func TestAllNodesFlaggerControllerFlagNodes(t *testing.T) {
 }
 
 func TestAllNodesFlaggerControllerFlagNodesAlreadyFlagged(t *testing.T) {
-	node := &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "node",
-		},
-	}
-	secondNode := &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "second-node",
-		},
-	}
-	client := fake.NewSimpleClientset(node, secondNode)
+	nodes := kubernetes.GenerateTestNodes(10)
+	client := fake.NewSimpleClientset(nodes...)
 	controller := &AllNodesFlaggerController{kubeClient: client}
 
-	err := kubernetes.FlagNode(client, &kubernetes.Node{Node: node})
+	err := kubernetes.FlagNode(client, &kubernetes.Node{Node: nodes[0].(*corev1.Node)})
 	assert.Nil(t, err)
 
 	err = controller.Run()
 	assert.Nil(t, err)
 
-	nodes, err := kubernetes.GetNodes(client, kubernetes.NodeFlagged())
+	n, err := kubernetes.GetNodes(client, kubernetes.NodeFlagged())
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(nodes))
+	assert.Equal(t, 10, len(n))
 }
