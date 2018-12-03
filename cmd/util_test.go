@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -77,11 +76,6 @@ func TestBuildClients(t *testing.T) {
 
 		k8Client, cloudClient, err := buildClients("test")
 		assert.Nil(t, err)
-
-		if err != nil {
-			fmt.Fprintf(os.Stdout, "%q\n", err.Error())
-		}
-
 		assert.NotNil(t, k8Client)
 		assert.NotNil(t, cloudClient)
 	})

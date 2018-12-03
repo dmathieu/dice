@@ -48,7 +48,6 @@ func k8Config() (*restclient.Config, error) {
 	if len(os.Getenv("KUBERNETES_SERVICE_PORT")) > 0 && len(os.Getenv("KUBERNETES_SERVICE_HOST")) > 0 {
 		return restclient.InClusterConfig()
 	}
-	fmt.Fprintf(os.Stdout, "CONFIG: %q\n", kubeConfig)
 	return clientcmd.BuildConfigFromFlags("", kubeConfig)
 }
 

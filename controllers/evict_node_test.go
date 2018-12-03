@@ -52,14 +52,6 @@ func TestEvictNodeControllerNewNoFlagged(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "my-node",
 		},
-		Spec: corev1.NodeSpec{
-			Unschedulable: false,
-		},
-		Status: corev1.NodeStatus{
-			Conditions: []corev1.NodeCondition{
-				corev1.NodeCondition{Status: corev1.ConditionTrue},
-			},
-		},
 	}
 
 	client := fake.NewSimpleClientset(nonFlaggedNode)
@@ -78,11 +70,6 @@ func TestEvictNodeControllerNew(t *testing.T) {
 			Name:   "flagged-node",
 			Labels: map[string]string{"dice": "roll"},
 		},
-	}
-	node := &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "my-node",
-		},
 		Spec: corev1.NodeSpec{
 			Unschedulable: false,
 		},
@@ -90,6 +77,11 @@ func TestEvictNodeControllerNew(t *testing.T) {
 			Conditions: []corev1.NodeCondition{
 				corev1.NodeCondition{Status: corev1.ConditionTrue},
 			},
+		},
+	}
+	node := &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "my-node",
 		},
 	}
 

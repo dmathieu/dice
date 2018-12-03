@@ -54,7 +54,7 @@ func (c *EvictNodeController) Run(doneCh chan struct{}) {
 		return
 	}
 
-	err := kubernetes.EvictNodes(c.kubeClient, c.concurrency)
+	_, err := kubernetes.EvictNodes(c.kubeClient, c.concurrency)
 	if err != nil {
 		utilruntime.HandleError(err)
 	}
@@ -107,12 +107,6 @@ func (c *EvictNodeController) deleteNode(obj interface{}) {
 }
 
 func (c *EvictNodeController) handleNodeChange(n *corev1.Node) {
-	node := &kubernetes.Node{Node: n}
-
-	if !node.IsReady() || node.IsFlagged() {
-		return
-	}
-
 	nodes, err := kubernetes.GetNodes(c.kubeClient, kubernetes.NodeFlagged())
 	if err != nil {
 		utilruntime.HandleError(err)
@@ -124,7 +118,7 @@ func (c *EvictNodeController) handleNodeChange(n *corev1.Node) {
 		return
 	}
 
-	err = kubernetes.EvictNodes(c.kubeClient, c.concurrency)
+	_, err = kubernetes.EvictNodes(c.kubeClient, c.concurrency)
 	if err != nil {
 		utilruntime.HandleError(err)
 		return

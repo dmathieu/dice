@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -59,59 +60,61 @@ func TestNodeEvicterWithPods(t *testing.T) {
 }
 
 func TestEvictNodes(t *testing.T) {
-	firstNode := &Node{&corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   "first-node",
-			Labels: map[string]string{flagName: flagValue},
-		},
-	}}
-	secondNode := &Node{&corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   "second-node",
-			Labels: map[string]string{flagName: flagValue},
-		},
-	}}
-	thirdNode := &Node{&corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   "third-node",
-			Labels: map[string]string{flagName: flagValue},
-		},
-	}}
-	client := fake.NewSimpleClientset(firstNode.Node, secondNode.Node, thirdNode.Node)
-
 	t.Run("evicts the set number of nodes", func(t *testing.T) {
-		err := EvictNodes(client, 2)
+		client := fake.NewSimpleClientset(GenerateTestNodes(10)...)
+		count, err := EvictNodes(client, 3)
 		assert.Nil(t, err)
+		assert.Equal(t, 3, count)
+	})
 
-		nodes, err := GetNodes(client)
+	t.Run("does not fail if the concurrency is higher than the number of nodes", func(t *testing.T) {
+		client := fake.NewSimpleClientset(GenerateTestNodes(10)...)
+		count, err := EvictNodes(client, 100)
 		assert.Nil(t, err)
-		evictedCount := 0
-
-		for _, n := range nodes {
-			if n.Spec.Unschedulable {
-				evictedCount = evictedCount + 1
-			}
-		}
-		assert.Equal(t, 2, evictedCount)
+		assert.Equal(t, 10, count)
 	})
 
 	t.Run("ignores nodes that were already evicted", func(t *testing.T) {
-		err := EvictNodes(client, 2)
+		nodes := GenerateTestNodes(10)
+		client := fake.NewSimpleClientset(nodes...)
+		ev := &nodeEvicter{client, &Node{nodes[0].(*corev1.Node)}}
+		err := ev.Process()
 		assert.Nil(t, err)
 
-		ev := &nodeEvicter{client, thirdNode}
-		err = ev.Process()
+		count, err := EvictNodes(client, 3)
 		assert.Nil(t, err)
+		assert.Equal(t, 2, count)
+	})
 
-		nodes, err := GetNodes(client)
+	t.Run("reduces count if there are non-ready nodes", func(t *testing.T) {
+		nodes := GenerateTestNodes(10)
+		nodes = append(nodes, &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:   "Non-ready node",
+				Labels: map[string]string{flagName: flagValue},
+			},
+		})
+
+		client := fake.NewSimpleClientset(nodes...)
+		count, err := EvictNodes(client, 3)
 		assert.Nil(t, err)
-		evictedCount := 0
+		assert.Equal(t, 2, count)
+	})
 
-		for _, n := range nodes {
-			if n.Spec.Unschedulable {
-				evictedCount = evictedCount + 1
-			}
+	t.Run("does nothing if there are too many non-ready nodes", func(t *testing.T) {
+		nodes := GenerateTestNodes(10)
+		for i := 1; i <= 10; i++ {
+			nodes = append(nodes, &corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:   fmt.Sprintf("Non-ready node %d", i),
+					Labels: map[string]string{flagName: flagValue},
+				},
+			})
 		}
-		assert.Equal(t, 2, evictedCount)
+
+		client := fake.NewSimpleClientset(nodes...)
+		count, err := EvictNodes(client, 3)
+		assert.Nil(t, err)
+		assert.Equal(t, 0, count)
 	})
 }
