@@ -1,7 +1,5 @@
 # Dice
 
-**WIP**
-
 Dice will roll all instances within a kubernetes cluster, using a zero-downtime strategy.
 
 Whenever running the process, it will:
