@@ -1,13 +1,12 @@
 #!/bin/sh -e
 
 make build
-dockerUser=dmathieu
 
 cd compiled/
 for f in dice_*; do
 	os=$(echo $f | cut -d'_' -f 2)
 	arch=$(echo $f | cut -d'_' -f 3)
-	tag=$dockerUser/dice-$os-$arch
+	tag=gcr.io/$GOOGLE_PROJECT_ID/dice-$os-$arch
 
 	echo "Building for $os/$arch as $tag"
 	cp $f ../dice
@@ -17,7 +16,7 @@ done
 for f in dice_*; do
 	os=$(echo $f | cut -d'_' -f 2)
 	arch=$(echo $f | cut -d'_' -f 3)
-	tag=$dockerUser/dice-$os-$arch
+	tag=gcr.io/$GOOGLE_PROJECT_ID/dice-$os-$arch
 	echo "Pushing $tag"
 	docker push $tag
 done

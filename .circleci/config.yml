@@ -26,8 +26,18 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
-          name: Log into Docker Hub
-          command: docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
+          name: Install Google Cloud SDK
+          command:  |
+            export CLOUD_SDK_REPO="cloud-sdk-stretch"
+            echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+            curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+            sudo apt-get update && sudo apt-get install google-cloud-sdk
+      - run:
+          name: Authenticate to registry
+          command: |
+            gcloud auth configure-docker
+            echo $GCLOUD_SERVICE_KEY | gcloud auth activate-service-account --key-file=-
+            gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
       - run:
           name: Compile and release
           command: bin/release

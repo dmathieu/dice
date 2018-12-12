@@ -44,7 +44,7 @@ spec:
       serviceAccountName: dice
       containers:
       - name: dice
-        image: docker.io/dmathieu/dice-linux-amd64
+        image: gcr.io/dmathieu-225120/dice-linux-amd64
         command:
           - ./dice
           - run
