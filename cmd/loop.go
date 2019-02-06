@@ -37,6 +37,7 @@ var loopCmd = &cobra.Command{
 		doneCh := make(chan struct{})
 		flagger := controllers.NewOldNodesFlaggerController(k8Client, *wf)
 		go flagger.Run(doneCh, *uptime)
+		defer close(doneCh)
 
 		c, err := runWatchControllers(k8Client, cloudClient, concurrency, true)
 		if err != nil {
@@ -47,7 +48,6 @@ var loopCmd = &cobra.Command{
 		glog.Infof("Started all controllers")
 
 		c.Run()
-		close(doneCh)
 	},
 }
 
