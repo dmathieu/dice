@@ -48,9 +48,9 @@ func NewEvictNodeController(client kube.Interface, nodeInformer coreinformers.No
 }
 
 // Run starts the controller
-func (c *EvictNodeController) Run(doneCh chan struct{}) {
+func (c *EvictNodeController) Run(finishedCh chan struct{}, parentDoneCh chan struct{}) {
 	defer utilruntime.HandleCrash()
-	if !controller.WaitForCacheSync("evict node", doneCh, c.nodeListerSynced) {
+	if !controller.WaitForCacheSync("evict node", parentDoneCh, c.nodeListerSynced) {
 		return
 	}
 
@@ -64,9 +64,12 @@ func (c *EvictNodeController) Run(doneCh chan struct{}) {
 	for {
 		select {
 		case <-c.doneCh:
-			close(doneCh)
+			close(finishedCh)
 			return
-		case <-doneCh:
+		case <-finishedCh:
+			close(c.doneCh)
+			return
+		case <-parentDoneCh:
 			close(c.doneCh)
 			return
 		}

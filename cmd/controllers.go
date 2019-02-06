@@ -10,16 +10,19 @@ import (
 )
 
 type watchControllers struct {
-	evictDoneCh    chan struct{}
+	evictDoneCh     chan struct{}
+	evictFinishedCh chan struct{}
+
 	deleteDoneCh   chan struct{}
 	informerDoneCh chan struct{}
 }
 
 func (w *watchControllers) Run() {
-	<-w.evictDoneCh
+	<-w.evictFinishedCh
 }
 
 func (w *watchControllers) Close() {
+	close(w.evictDoneCh)
 	close(w.deleteDoneCh)
 	close(w.informerDoneCh)
 }
@@ -30,7 +33,8 @@ func runWatchControllers(k8Client kubernetes.Interface, cloudClient cloudprovide
 	inform := informers.NewSharedInformerFactory(k8Client, time.Second*30)
 	evict := controllers.NewEvictNodeController(k8Client, inform.Core().V1().Nodes(), c, i)
 	w.evictDoneCh = make(chan struct{})
-	go evict.Run(w.evictDoneCh)
+	w.evictFinishedCh = make(chan struct{})
+	go evict.Run(w.evictFinishedCh, w.evictDoneCh)
 
 	delete := controllers.NewDeleteNodeController(k8Client, cloudClient, inform.Core().V1().Pods(), inform.Core().V1().Nodes())
 	w.deleteDoneCh = make(chan struct{})

@@ -26,12 +26,13 @@ func TestEvictNodeController(t *testing.T) {
 	client := fake.NewSimpleClientset()
 	controller := newEvictNodeController(client)
 
+	finishedCh := make(chan struct{})
 	doneCh := make(chan struct{})
 	go func() {
 		time.Sleep(1 * time.Millisecond)
-		close(doneCh)
+		close(finishedCh)
 	}()
-	controller.Run(doneCh)
+	controller.Run(finishedCh, doneCh)
 }
 
 func TestEvictNodeControllerDeleteNode(t *testing.T) {

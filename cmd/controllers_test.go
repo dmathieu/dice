@@ -19,7 +19,7 @@ func TestRunWatchControllers(t *testing.T) {
 
 	go func() {
 		time.Sleep(time.Second)
-		close(c.evictDoneCh)
+		close(c.evictFinishedCh)
 	}()
 
 	c.Run()
