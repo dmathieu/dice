@@ -8,10 +8,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-const (
-	flagName  = "dice"
-	flagValue = "roll"
-)
+const flagName = "dice"
+
+var flagValue = "roll"
 
 // Node represents a kubernetes node
 type Node struct {
