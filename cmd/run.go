@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/dmathieu/dice/controllers"
+	"github.com/dmathieu/dice/kubernetes"
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 )
@@ -19,6 +20,7 @@ var runCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
+		kubernetes.Setup(kubernetes.FlagValue("roll-run"))
 		glog.Infof("Starting controllers")
 
 		flagger := controllers.NewAllNodesFlaggerController(k8Client)
