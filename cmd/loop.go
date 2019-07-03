@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/dmathieu/dice/controllers"
+	"github.com/dmathieu/dice/kubernetes"
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 )
@@ -33,7 +34,9 @@ var loopCmd = &cobra.Command{
 			log.Fatalf("uptime: %q", err)
 		}
 
+		kubernetes.Setup(kubernetes.FlagValue("roll-loop"))
 		glog.Infof("Starting controllers")
+
 		doneCh := make(chan struct{})
 		flagger := controllers.NewOldNodesFlaggerController(k8Client, *wf)
 		go flagger.Run(doneCh, *uptime)
