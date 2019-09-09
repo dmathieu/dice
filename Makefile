@@ -6,11 +6,11 @@ build: gox
 ci: tidy test
 
 test:
-	go test -mod=vendor -race -v -coverprofile c.out ./...
+	go test -race -v -coverprofile c.out ./...
 
 tidy: goimports
 	test -z "$$(goimports -l -d $(GO_FILES) | tee /dev/stderr)"
-	go vet -mod=vendor ./...
+	go vet ./...
 
 goimports:
 	go get golang.org/x/tools/cmd/goimports
