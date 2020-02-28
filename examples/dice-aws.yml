@@ -44,7 +44,7 @@ spec:
       serviceAccountName: dice
       containers:
       - name: dice
-        image: gcr.io/dmathieu-225120/dice-linux-amd64
+        image: $URL_TO_IMAGE_ON_REGISTRY
         command:
           - ./dice
           - run
