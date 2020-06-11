@@ -17,7 +17,21 @@ type watchControllers struct {
 	informerDoneCh chan struct{}
 }
 
-func (w *watchControllers) Run() {
+func (w *watchControllers) Run(maxUptime *time.Duration) {
+	start := time.Now()
+	go func() {
+		if maxUptime == nil {
+			return
+		}
+		for {
+			if time.Since(start) > *maxUptime {
+				close(w.evictFinishedCh)
+				w.Close()
+				return
+			}
+		}
+	}()
+
 	<-w.evictFinishedCh
 }
 
