@@ -37,7 +37,7 @@ var runCmd = &cobra.Command{
 
 		glog.Infof("Started all controllers")
 
-		c.Run()
+		c.Run(nil)
 	},
 }
 

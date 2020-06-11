@@ -12,6 +12,7 @@ import (
 var (
 	watchFrequency string
 	maxUptime      string
+	dieAfter       string
 )
 
 // loopCmd represents the loop command
@@ -33,6 +34,10 @@ var loopCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("uptime: %q", err)
 		}
+		da, err := parseStringDuration(dieAfter)
+		if err != nil {
+			log.Fatalf("uptime: %q", err)
+		}
 
 		kubernetes.Setup(kubernetes.FlagValue("roll-loop"))
 		glog.Infof("Starting controllers")
@@ -50,7 +55,7 @@ var loopCmd = &cobra.Command{
 
 		glog.Infof("Started all controllers")
 
-		c.Run()
+		c.Run(da)
 	},
 }
 
@@ -59,4 +64,5 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVarP(&watchFrequency, "watch-frequency", "w", "5m", "How frequently the watcher will look for nodes to destroy")
 	rootCmd.PersistentFlags().StringVarP(&maxUptime, "max-uptime", "u", "10d", "The uptime after which dice will kill an instance")
+	rootCmd.PersistentFlags().StringVarP(&dieAfter, "die-after", "d", "11d", "The uptime after which dice will consider the watchers have crashed and will kill itself")
 }

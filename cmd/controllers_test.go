@@ -22,6 +22,18 @@ func TestRunWatchControllers(t *testing.T) {
 		close(c.evictFinishedCh)
 	}()
 
-	c.Run()
+	c.Run(nil)
 	c.Close()
+}
+
+func TestRunWatchControllersMaxUptimeReached(t *testing.T) {
+	kubeClient := fake.NewSimpleClientset()
+	cClient := cloudtest.NewTestCloudProvider()
+
+	c, err := runWatchControllers(kubeClient, cClient, 1, false)
+	assert.Nil(t, err)
+	assert.NotNil(t, c)
+
+	uptime := time.Millisecond
+	c.Run(&uptime)
 }
