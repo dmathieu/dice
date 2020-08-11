@@ -36,10 +36,13 @@ var loopCmd = &cobra.Command{
 		}
 		da, err := parseStringDuration(dieAfter)
 		if err != nil {
-			log.Fatalf("uptime: %q", err)
+			log.Fatalf("die after: %q", err)
 		}
 
-		kubernetes.Setup(kubernetes.FlagValue("roll-loop"))
+		err = kubernetes.Setup(kubernetes.FlagValue("roll-loop"))
+		if err != nil {
+			log.Fatalf("kubernetes setup: %q", err)
+		}
 		glog.Infof("Starting controllers")
 
 		doneCh := make(chan struct{})

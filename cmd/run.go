@@ -20,7 +20,10 @@ var runCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		kubernetes.Setup(kubernetes.FlagValue("roll-run"))
+		err = kubernetes.Setup(kubernetes.FlagValue("roll-run"))
+		if err != nil {
+			log.Fatal(err)
+		}
 		glog.Infof("Starting controllers")
 
 		flagger := controllers.NewAllNodesFlaggerController(k8Client)

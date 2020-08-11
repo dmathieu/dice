@@ -20,9 +20,14 @@ type CloudProvider struct {
 }
 
 // NewAWSCloudProvider instantiates a new CloudProvider
-func NewAWSCloudProvider() cloudprovider.CloudProvider {
-	svc := ec2.New(session.New())
-	return &CloudProvider{svc}
+func NewAWSCloudProvider() (cloudprovider.CloudProvider, error) {
+	sess, err := session.NewSession()
+	if err != nil {
+		return nil, err
+	}
+
+	svc := ec2.New(sess)
+	return &CloudProvider{svc}, nil
 }
 
 // Name is the name of that cloud provider

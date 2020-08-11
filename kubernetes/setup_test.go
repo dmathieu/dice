@@ -8,7 +8,7 @@ import (
 
 func TestSetupFlagValue(t *testing.T) {
 	assert.Equal(t, flagValue, "roll")
-	Setup(FlagValue("roll-test"))
+	assert.NoError(t, Setup(FlagValue("roll-test")))
 	assert.Equal(t, "roll-test", flagValue)
-	Setup(FlagValue("roll"))
+	assert.NoError(t, Setup(FlagValue("roll")))
 }

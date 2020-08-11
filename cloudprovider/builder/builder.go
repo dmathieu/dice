@@ -13,7 +13,7 @@ import (
 func NewCloudProvider(name string) (cloudprovider.CloudProvider, error) {
 	switch name {
 	case aws.ProviderName:
-		return aws.NewAWSCloudProvider(), nil
+		return aws.NewAWSCloudProvider()
 	case test.ProviderName:
 		return test.NewTestCloudProvider(), nil
 	default:
