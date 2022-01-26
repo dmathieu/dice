@@ -1,5 +1,8 @@
 # Dice
 
+**Project Status**: This project is archived because I am not using it in production anymore, and have therefore not been updating it to the latest Kubernetes APIs.  
+Upgrading the dependencies would require essentially rewriting it entirely, and I do not wish to do so at the moment.
+
 Dice will roll all instances within a kubernetes cluster, using a zero-downtime strategy.
 
 Whenever running the process, it will:
